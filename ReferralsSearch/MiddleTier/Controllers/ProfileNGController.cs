@@ -1,8 +1,8 @@
-﻿using Sabio.Web.Controllers.Attributes;
-using Sabio.Web.Models.ViewModels;
+﻿using Aic.Web.Controllers.Attributes;
+using Aic.Web.Models.ViewModels;
 using System.Web.Mvc;
 
-namespace Sabio.Web.Controllers
+namespace Aic.Web.Controllers
 {
     [RoutePrefix("ProfileNG")]
     public class ProfileNGController : BaseController
