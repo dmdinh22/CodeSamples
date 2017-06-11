@@ -1,0 +1,106 @@
+﻿@model aic.Web.Models.ViewModels.ItemViewModel<int?>
+
+@{
+    ViewBag.Title = "Manage";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<body ng-controller="pageMetaTagsController as pmtCtrl">
+    <div class="container" style="padding-top:5px;padding-bottom:10px">
+        <h2>Facebook & LinkedIn Tags</h2>
+        <br />
+        <h4 id="ownerTypeName" ng-cloak>Currently viewing meta tags for the {{pmtCtrl.pageUrl}} page.</h4>
+        <p>These will be the content value for the meta tags that are dynamically hydrated upon load of a public page. 
+        The meta tags look like this example: 
+            <br />
+            <br />
+        "<'meta name=”og:title” content=”summary” />" in which the inputted data will replace "summary".</p>
+        <div class="col-md-12" id="MetaTagsContainer">
+            <br>
+            <h1 class="text-center space-top" id="createMetaTag"></h1>
+            <div class="separator"></div>
+            <!--FORM-->
+            <form role="form" name="metaTagForm" id="metaTagForm" class="form-group" display="inline-block" novalidate>
+
+                <!--TITLE-->
+                <div class="form-group" ng-class="{'has-error' : metaTagForm.title.$invalid
+                         && !metaTagForm.title.$pristine}">
+                    <h5 ng-cloak>Title (150 characters max)</h5>
+                    <input type="text" maxlength="150" size="5" class="form-control" display="inline-block"
+                           id="title" placeholder="Title" name="title" ng-maxlength="150"
+                           ng-model="pmtCtrl.title"
+                           ng-cloak required>
+                    <p ng-show="metaTagForm.title.$invalid
+                           && !metaTagForm.title.$pristine"
+                       ng-cloak class="help-block">The meta tag title is required</p>
+                    <p ng-show="metaTagForm.title.$error.maxlength"
+                       ng-cloak class="help-block">The meta tag title is too long, maximum length is 150.</p>
+                </div>
+
+                <!--IMG URL-->
+                <div class="form-group" ng-class="{'has-error' : metaTagForm.imgUrl.$invalid
+                         && !metaTagForm.imgUrl.$pristine}">
+                    <h5 ng-cloak>Image URL (150 characters max)</h5>
+                    <input type="text" maxlength="150" size="5" class="form-control" display="inline-block"
+                           id="imgUrl" placeholder="www.aic.com/logo.jpg" name="imgUrl" ng-maxlength="150"
+                           ng-model="pmtCtrl.imgUrl"
+                           ng-cloak required>
+                    <p ng-show="metaTagForm.imgUrl.$invalid
+                           && !metaTagForm.imgUrl.$pristine"
+                       ng-cloak class="help-block">The meta tag image url is required</p>
+                    <p ng-show="metaTagForm.imgUrl.$error.maxlength"
+                       ng-cloak class="help-block">The meta tag image url is too long, maximum length is 150..</p>
+                </div>
+
+                <!--PAGE URL-->
+                <div class="form-group" ng-class="{'has-error' : metaTagForm.pageUrl.$invalid
+                         && !metaTagForm.pageUrl.$pristine}">
+                    <h5 ng-cloak>Page URL (150 characters max)</h5>
+                    <input type="text" maxlength="150" size="5" class="form-control" display="inline-block"
+                           id="pageUrl" placeholder="www.aic.com" name="pageUrl" ng-maxlength="150"
+                           ng-model="pmtCtrl.pageUrl"
+                           ng-cloak required>
+                    <p ng-show="metaTagForm.pageUrl.$invalid
+                           && !metaTagForm.pageUrl.$pristine"
+                       ng-cloak class="help-block">The meta tag page url is required</p>
+                    <p ng-show="metaTagForm.pageUrl.$error.maxlength"
+                       ng-cloak class="help-block">The meta tag page url is too long, maximum length is 150..</p>
+                </div>
+
+                <!--DESCRIPTION-->
+                <div class="form-group" ng-class="{'has-error' : metaTagForm.description.$invalid
+                         && !metaTagForm.description.$pristine}">
+                    <h5 ng-cloak>Description (150 characters max)</h5>
+                    <input type="text" maxlength="150" size="5" class="form-control" display="inline-block"
+                           id="description" placeholder="Description" name="description" ng-maxlength="150"
+                           ng-model="pmtCtrl.description"
+                           ng-cloak required>
+                    <p ng-show="metaTagForm.description.$invalid
+                           && !metaTagForm.description.$pristine"
+                       ng-cloak class="help-block">The meta tag description is required</p>
+                    <p ng-show="metaTagForm.description.$error.maxlength"
+                       ng-cloak class="help-block">The meta tag description is too long, maximum length is 150..</p>
+                </div>
+            </form>
+            <br />
+            <br />
+            <button type="submit" class="btn btn-cta btn-cta-primary"
+                    ng-click="pmtCtrl.submitForm(metaTagForm)" @*- pass in the form obj in function*@
+                    ng-disabled="metaTagForm.$invalid"
+                    ng-cloak>
+                Submit
+            </button>
+            <input type="button" class="btn btn-cta btn-cta-secondary" id="backBtn" name="backBtn" value="Back" onclick="history.back(-1)" />
+        </div><!-- Meta Tag Entry Form Container-->
+        @*  we render the value from the model using this syntax *@
+        <input type="hidden" id="ownerTypeId" value="@Model.Item" />
+    </div>
+</body>
+<br />
+
+@section scripts {
+
+    <script src="~/Scripts/aic/aic.services.pageMetaTags.js"></script>
+    <script src="~/Scripts/aic/core/service-factories/aic.service.pageMetaTags.factory.js"></script>
+    <script src="~/Scripts/aic/core/controllers/aic.controller.pagemetatags.manage.js"></script>
+}

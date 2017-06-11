@@ -1,0 +1,253 @@
+﻿@model aic.Web.Models.ViewModels.BaseViewModel
+@{
+	ViewBag.Title = "Index";
+	Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div class="container">
+	<h1>Work History Index</h1>
+	@Html.ActionLink("Add Work History", "Create", new { area = "" }, new { @class = "btn btn-cta btn-cta-primary" })
+	<input type="button" class="btn btn-cta btn-cta-secondary" id="backBtn" name="backBtn" value="Back" onclick="history.back(-1)" />
+	<hr />
+	<div class="container list-group workHistoryContainer">
+		<!-- Work History Clones go here-->
+	</div>
+
+</div>
+
+<div class="modal fade" role="dialog" id="deleteModal" data-id="null">
+	<div class="modal-dialog">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Delete confirmation</h4>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to delete?</p>
+			</div>
+			<div class="modal-footer">
+
+				<div class="btn-group">
+					<button type="button" class="btn btn-cta btn-cta-secondary" data-dismiss="modal">No</button>
+					<button type="button" id="deleteConfirm" class="btn btn-cta btn-cta-primary">Yes</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div> <!--#deleteModal-->
+
+<script type="text/html" id="workHistoryTemplate">
+	<div class="list-group-item">
+		<p class="list-group-item-text company">Company: <span></span></p>
+		<p class="list-group-item-text title">Title: <span></span></p>
+		<p class="list-group-item-text contract">Contracted: <span></span></p>
+		<p class="list-group-item-text datesWorked">Dates at Company: <span></span></p>
+		<p class="list-group-item-text description">Description: <span></span></p>
+		<br />
+		<div class="btn-group">
+			<input type="button" name="editWrkHstry" class="btn btn-cta btn-cta-primary editWrkHstry" value="Edit" />
+			<input type="button" name="deleteWrkHstry" class="btn btn-cta btn-cta-secondary deleteWrkHstry" value="Delete" />
+		</div>
+
+
+	</div>
+
+</script>
+
+
+@section scripts {
+
+<script type="text/javascript">
+			// ## UTILITY FUNCTIONS ##
+			{
+				aic.page.getClone = function (template) {
+					// get template
+					var $template = $(template);
+					// pull html of template
+					var html = $template.html();
+					// load html into jQuery object
+					var $html = $(html);
+					// clone jQuery object
+					var $clone = $html.clone();
+
+					return $clone;
+				} //aic.page.getClone
+			}
+			// ## END UTILITY FUNCTIONS ##
+
+			// ## BEGIN GLOBAL VARIABLES ##
+			{
+				aic.page.ajaxType =
+					{
+						POST: "POST", //        CREATE
+						GET: "GET", //          READ
+						PUT: "PUT", //          UPDATE
+						DELETE: "DELETE" //     DELETE
+					}; // aic.page.ajaxType
+
+				aic.page.flags = {
+					REPLY: "replying",
+					DELETE: "deleting",
+					EDIT: "editing"
+				}; //aic.page.flags
+			}
+		// ## END GLOBAL VARIABLES ##
+
+
+</script> <!-- Utility Methods/ Global vars-->
+
+	<script type="text/javascript">
+		aic.page.startUp = function () {
+			console.log("In aic.page.startUp");
+
+			// delegated edit binding
+			$(".workHistoryContainer").on("click", ".editWrkHstry", aic.page.handlers.onEditClick);
+
+			// delegated delete binding
+			$(".workHistoryContainer").on("click", ".deleteWrkHstry", aic.page.handlers.onDeleteClick);
+
+			// delete confirmation
+			$("#deleteConfirm").on("click", aic.page.handlers.onDeleteConfirmation);
+
+			var admin = aic.page.roles.includes("Admin");
+
+			if (admin == true) {
+				// hydrate page with work history from SQL
+				aic.services.getWorkHistory(aic.page.handlers.onGetWorkHistorySuccess);
+			} else {
+				aic.services.getWorkHistoryByPersonId(aic.page.personId, aic.page.handlers.onGetWorkHistorySuccess)
+			};
+
+			}; //aic.page.startUp
+
+		// ## GET WORK HISTORY ##
+		{
+			aic.services.getWorkHistory = function (onSuccess) {
+				aic.page.sendAjax("workhistory", aic.page.ajaxType.GET, null, onSuccess);
+			}; //aic.services.getWorkHistory
+
+			aic.page.handlers.onGetWorkHistorySuccess = function (data, textStatus, jqXHR) {
+
+				var workHistoryArray = data.items;
+
+				if (workHistoryArray.length != null) {
+					for (i = 0; i < workHistoryArray.length; i++) {
+						// get the current work history
+						var currentWorkHistory = workHistoryArray[i];
+
+						//TCHA 
+						var $workHistory = aic.page.getClone("#workHistoryTemplate");
+
+						var startDate = currentWorkHistory.dateStarted;
+						var endDate = currentWorkHistory.dateEnded;
+
+						var subStartDate = startDate.substring(0, 10);
+
+						if (endDate != null) {
+							var subEndDate = endDate.substring(0, 10);
+						} else {
+							var subEndDate = "Present";
+						}
+
+
+						// hydrate the DOM objects 
+						$workHistory.attr("data-id", currentWorkHistory.id);
+						$workHistory.find(".company span").text(currentWorkHistory.company);
+						$workHistory.find(".title span").text(currentWorkHistory.title);
+						$workHistory.find(".datesWorked span").text("From "
+							+ subStartDate + " to "
+							+ subEndDate);
+						if (currentWorkHistory.contract === 1) {
+							$workHistory.find(".contract span").text("Yes");
+						} else {
+							$workHistory.find(".contract span").text("No");
+
+						}
+						$workHistory.find(".description span").text(currentWorkHistory.description);
+
+						// append data object to DOM
+						$workHistory.appendTo(".workHistoryContainer");
+					}
+				}
+			}; //aic.page.handlers.onGetWorkHistorySuccess
+
+			aic.services.getWorkHistoryByPersonId = function (data, onSuccess)
+			{
+				aic.page.sendAjax("workhistory/personid/" + aic.page.personId, aic.page.ajaxType.GET, null, aic.page.handlers.onGetWorkHistorySuccess)
+			}
+		}
+		// ## END GET WORK HISTORY ##
+
+		// ## EDIT WOrK HISTORY ##
+		{
+			aic.page.handlers.onEditClick = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				var $this = $(this)
+
+				// find closest work historty div
+				var $currentWorkHistory = $this.closest(".list-group-item").data("id");
+
+				// redirect to proper edit page
+				self.location = "/workhistory/" + $currentWorkHistory + "/edit";
+
+			}; //aic.page.handlers.onEditClick
+
+		}
+		// ## END EDIT WORK HISTORY ##
+
+		// ## DELETE WORK HISTORY ##
+		{
+			aic.page.handlers.onDeleteClick = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				var $this = $(this);
+
+				var $currentWorkHistory = $this.closest(".list-group-item").data("id");
+
+				// add data-id
+				$("#deleteModal").data("id", $currentWorkHistory);
+
+				// show confirmation modal
+				$("#deleteModal").modal("show");
+
+			}; //aic.page.handlers.onDeleteClick
+
+			aic.services.deleteWorkHistory = function (deleteId, onSuccess) {
+				aic.page.sendAjax("workhistory/" + deleteId, aic.page.ajaxType.DELETE, null, onSuccess);
+			}; //aic.services.deleteWorkHistory
+
+			aic.page.handlers.onDeleteConfirmation = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				var deleteId = $("#deleteModal").data("id");
+
+				// send api call
+				aic.services.deleteWorkHistory(deleteId, aic.page.handlers.onDeleteConfirmSuccess);
+			}; //aic.page.handlers.onDeleteConfirmation
+
+			aic.page.handlers.onDeleteConfirmSuccess = function (data, textStatus, jqXHR) {
+				var deleteId = $("#deleteModal").data("id");
+
+				var currentWorkHistory = $(".workHistoryContainer").find("[data-id=" + deleteId + "]");
+
+				$("#deleteModal").modal("hide");
+				$("#deleteModal").data("id", null);
+
+				// delete 
+				currentWorkHistory.remove();
+
+			}; //aic.page.handlers.onDeleteConfirmSuccess
+		}
+		// ## END WORK HISTORY ##
+
+	</script>
+	}

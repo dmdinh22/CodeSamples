@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "index";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+@section stylesheets {
+    <style>
+        .recruiter {
+            margin-top: 75px;
+            padding-right: 0px;
+        }
+
+        .other {
+            margin-bottom: 100px;
+        }
+
+        .jumbotron {
+            opacity: 0.95;
+        }
+
+        .threed {
+            text-transform: uppercase;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="jumbotron recruiter">
+        <h2 class="threed">Seeking to post a job?</h2>
+        <hr />
+        <p>
+            You’re about to update your professional profile to a recruiter profile.
+            This cannot be undone. If you would like to maintain your professional profile, you will need to create a new account and create a recruiter profile.
+        </p>
+        <hr />
+        <a class="btn btn-cta-primary btn-lg inline" href="/recruiter/create" role="button">CONTINUE TO POST A JOB</a>
+        @if (Request.IsAuthenticated)
+        {
+            <a class="btn btn-cta-secondary btn-lg inline" href="/ProfilePageNg/Landing" role="button">CANCEL AND RETURN TO PROFILE</a>
+        }
+    </div>
+    <div class="jumbotron other">
+        <h2 class="threed">Looking for a job?</h2>
+        <hr />
+        <p>Our efficient method of landing jobs based on referrals from reliable people will enhance your job search experience.</p>
+        <hr />
+        <p><a class="btn btn-cta-primary btn-lg" href="/jobs/searchjob" role="button">SEARCH JOBS</a></p>
+    </div>
+</div>

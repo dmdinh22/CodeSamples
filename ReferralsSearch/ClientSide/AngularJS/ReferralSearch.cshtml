@@ -1,0 +1,133 @@
+﻿
+@{
+    ViewBag.Title = "ReferralSearch";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+@section stylesheets{
+    <style>
+        .panel {
+            margin-top: 10px;
+        }
+    </style>
+}
+
+<div class="container" ng-controller="userController as users" ng-cloak>
+    <div class="panel col-md-8 col-md-offset-2">
+        <h2>Search people to refer you.</h2>
+        <hr />
+        <div>
+            <h4>Search</h4>
+            <form class="form-inline" ng-submit="users.searchUser()">
+                <input type="text" class="form-control" ng-model="users.pageSearch" style="width:450px;" placeholder="Search Profiles" />
+                <input type="button" class="btn btn-cta-secondary" value="Search" ng-click="users.searchUser()" />
+            </form> <!--User Search-->
+            <input type="hidden" value="@Model.Item" id="jobId" />
+            <input type="hidden" value="@Model.SearchQuery" id="searchQuery" />
+            <hr />
+            <br />
+            <div ng-hide="users.pageSearch || users.matchedItems">
+                <h4>There are no results. Did you check for any misspellings?</h4>
+            </div>
+        </div><!--Search Div-->
+        <h5><a href="#" ng-click="users.email()" ng-animate="fade">Can't find who you are looking for? Send them an email!</a></h5>
+        <br />
+        <h4 ng-hide="users.myJobs || users.myEdu">Please <a href="/ProfilePageNg/Landing">add your education or work history</a> in order to search for referrals.</h4>
+        <div ng-repeat="user in users.items" ng-show="users.items" ng-cloak>
+            <div class="row">
+                <div class="col-md-3">
+                    <img ng-src="{{users.setImage(user)}}" ng-href="/ProfilePageNg/{{user.personId}}/Public/" style="height:110px; width: 110px" />
+                </div><!--col-md-3-->
+                <br />
+                <div class="col-md-6">
+                    @*<span>{{user.userId}}</span>*@
+                    <a style="font-size:x-large" ; ng-model="user.fullName" ng-href="/ProfilePageNg/{{user.personId}}/Public/">{{user.fullName}}</a>
+                    <div ng-hide="user.schools[0].name == null">
+                        <span style="font-size:small;">Schools I've Attended: </span>
+                        <span style="font-size:small;" ng-repeat="school in user.schools">
+                            {{school.name}}{{$last ? '' : ($index==schools.length-2) ? ' and ' : ', '}}
+                        </span>
+                    </div><!--Education-->
+                    <div ng-hide="user.companies[0].nameOfCompany == null">
+                        <span style="font-size:small;">Places I've Worked At: </span>
+                        <span style="font-size:small;" ng-repeat="company in user.companies">
+                            {{company.nameOfCompany}}{{$last ? '' : ($index==companies.length-2) ? ' and ' : ', '}}
+                        </span>
+                    </div><!--Work History-->
+                </div><!--col-md-6-->
+                <br />
+                <div class="col-md-3">
+                    <button class="btn btn-cta btn-cta-primary" ng-click="users.openModal(user)">Message</button>
+                </div><!--col-md-3-->
+                <br />
+                <br />
+            </div><!--row-->
+            <hr />
+        </div> <!--Search Results-->
+        <br />
+        <div dir-paginate="match in users.matchedItems | orderBy:sortKey:reverse | itemsPerPage: users.pageSize"
+             total-items="users.totalRows" current-page="users.pageNum" ng-show="users.matchedItems" ng-cloak>
+            <!--| filter: {'personID': user.personID}"-->
+            <div class="row">
+                <div class="col-md-3">
+                    <img ng-src="{{match.fileUrl ? 'https://sabio-training.s3-us-west-2.amazonaws.com/C30/' + match.fileUrl : '/public-assets/images/people/defaultAvatar.jpg' }}" ng-href="/ProfilePag ng-href="/ProfilePageNg/{{match.personId}}/Public/" style="height:110px; width: 110px" />
+                </div><!--col-md-3-->
+                <br />
+                <div class="col-md-6">
+                    <a style="font-size:x-large" ; ng-href="/ProfilePageNg/{{match.personID}}/Public/">{{match.firstName + ' ' +  match.lastName}}</a>
+                    <div ng-hide="match.school == null">
+                        <span style="font-size:small;">Schools I've Attended: </span>
+                        <span style="font-size:small;">
+                            {{match.school}}
+                        </span>
+                    </div><!--Education-->
+                    <div ng-hide="match.company == null">
+                        <span style="font-size:small;">Places I've Worked At: </span>
+                        <span style="font-size:small;">
+                            {{match.company}}
+                        </span>
+                    </div><!--Work History-->
+                </div><!--col-md-6-->
+                <br />
+                <div class="col-md-3">
+                    <button class="btn btn-cta btn-cta-primary" ng-click="users.openModal(match)">Message</button>
+                </div><!--col-md-3-->
+                <hr />
+            </div><!--row-->
+            <br />
+        </div><!--Matched Results-->
+        <div style="text-align: center;">
+            <dir-pagination-controls on-page-change="users.pageChanged(newPageNumber)"
+                                     direction-links="true"
+                                     template-url="~/Scripts/dir-pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        </div><!--Pagination-->
+        <hr />
+        <a class="btn btn-cta-primary" ng-href="/ProfilePageNg/{{users.currentUserId}}/Public/">Back To Your Profile</a>
+        <br />
+        <br />
+    </div>
+</div><!--Controller Div-->
+
+@section scripts {
+
+    <script src="~/Scripts/sabio/sabio.services.user.js"></script>
+	<script src="~/Scripts/sabio/core/controllers/sabio.service.controller.referralSearch.js"></script>
+    <script src="~/Scripts/sabio/core/directives/sabio.directive.searchUser.js"></script>
+    <script src="~/Scripts/dir-pagination/dirPagination.js"></script>
+    <script src="~/Scripts/sabio/core/directives/sabio.directive.sendMessage.js"></script>
+    <script src="~/Scripts/sabio/core/service-factories/sabio.service.factory.messages.js"></script>
+    <script src="~/Scripts/sabio/sabio.services.messages.js"></script>
+    <script src="~/Scripts/sabio/core/service-factories/sabio.service.workhistory.factory.js"></script>
+    <script src="~/Scripts/sabio/sabio.services.workhistory.js"></script>
+    <script src="~/Scripts/sabio/sabio.services.job.js"></script>
+    <script src="~/Scripts/sabio/core/services/sabio.services.education.js"></script>
+    <script src="~/Scripts/sabio/core/service-factories/sabio.service.factory.education.js"></script>
+
+
+
+
+}
+
+
+
+

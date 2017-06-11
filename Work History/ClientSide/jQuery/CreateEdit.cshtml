@@ -1,0 +1,387 @@
+﻿@model aic.Web.Models.ViewModels.ItemViewModel<int?>
+
+@{
+	ViewBag.Title = "CreateEdit";
+	Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div class="container" style="padding-top:5px;padding-bottom:10px">
+	<h2>Work History</h2>
+		<div class="col-md-12" id="WorkHistoryContainer">
+			<br>
+			<h1 class="text-center space-top" id="createWorkHistory"></h1>
+			<div class="separator"></div>
+				<form class="form-group" id="workHistoryForm">
+					<h5>Company</h5>
+					<input class="form-control" type="text" name="companyInput" id="companyInput"><br>
+					<h5>Title</h5>
+					<input class="form-control" type="text" name="titleInput" id="titleInput">
+					<div>
+						<h5>Date Started</h5>
+						<input class="form-control" type="date" name="dateStartedInput" id="dateStartedInput">
+					</div>
+					<div>
+						<h5>Date Ended</h5>
+						<input class="form-control" type="date" name="dateEndedInput" id="dateEndedInput">
+					</div>
+					<h5>Description</h5>
+					<input class="form-control" type="text" name="descriptionInput" id="descriptionInput">
+					<h5>Contracted?</h5>
+					<select class="form-control col-md-6" id="contractInput">
+						<option value="true">Yes</option>
+						<option value="false">No</option>
+					</select>
+				</form>
+			<br />
+	<br />
+			<input type="submit" value="Submit" class="btn btn-cta btn-cta-primary" id="whSubmitBtn">
+			<input type="button" class="btn btn-cta btn-cta-secondary" id="backBtn" name="backBtn" value="Back" onclick="history.back(-1)" />
+
+
+			</div><!-- Work History Entry Form Container-->
+		@*  we render the value from the model using this syntax *@
+		<input type="hidden" id="workHistoryId" />
+	</div>
+
+
+<br />
+
+@section scripts {
+	<script type="text/javascript">
+		// ## UTILITY FUNCTIONS ##
+		{
+			aic.page.getClone = function (template) {
+				// get template
+				var $template = $(template);
+				// pull html of template
+				var html = $template.html();
+				// load html into jQuery object
+				var $html = $(html);
+				// clone jQuery object
+				var $clone = $html.clone();
+
+				return $clone;
+			} //aic.page.getClone
+		}
+		// ## END UTILITY FUNCTIONS ##
+
+		// ## BEGIN GLOBAL VARIABLES ##
+		{
+			aic.page.ajaxType =
+				{
+					POST: "POST", //        CREATE 
+					GET: "GET", //          READ
+					PUT: "PUT", //          UPDATE 
+					DELETE: "DELETE" //     DELETE
+				}; // aic.page.ajaxType
+
+			aic.page.flags = {
+				REPLY: "replying",
+				DELETE: "deleting",
+				EDIT: "editing"
+			}; //aic.page.flags
+		}
+		// ## END GLOBAL VARIABLES ##
+
+
+	</script> <!-- Utility Methods/ Global vars-->
+
+	<!-- This will contain al lo four handlers-->
+
+	<script type="text/javascript">
+		aic.page.workHistoryId = $("#workHistoryId").val();
+
+		aic.page.startUp = function () {
+			console.log("In aic.page.startUp");
+
+			$("#workHistoryForm").validate({
+				rules: {
+					companyInput: {
+						required: true,
+						minlength: 1
+					},
+					titleInput: {
+						required: true,
+						minlength: 1
+					},
+					dateStartedInput: {
+						required: true,
+						date: true
+					},
+					dateEndedInput: {
+						date: true
+					},
+					descriptionInput: {
+						required: true,
+						minlength: 1
+					}
+				}
+			});
+
+			$("#whSubmitBtn").on("click", aic.page.handlers.onSubmitClick);
+
+
+
+			if (aic.page.workHistoryId) {
+				console.log("Work History ID on startup: ", aic.page.workHistoryId);
+
+				aic.services.getWorkHistoryById(aic.page.workHistoryId, aic.page.handlers.onGetWorkHistoryByIdSuccess);
+			}
+
+		}; //aic.page.startUp
+
+		// ## ADD WORK HISTORY ##
+		{
+			aic.page.handlers.onSubmitClick = function (e) {
+
+				if (e) {
+					e.preventDefault();
+				}
+
+				console.log("In aic.page.handlers.onSubmitClick")
+
+				var workHistory =
+					{
+						"id": null,
+						"personID": aic.page.personId,
+						"companyID": 1,
+						"company": null,
+						"title": null,
+						"contract": null,
+						"dateStarted": null,
+						"dateEnded": null,
+						"description": null,
+						"modifiedBy": null,
+						"modifiedDate": null
+					};
+
+				// hydrate data object with input values via form
+				workHistory.company = $("#companyInput").val();
+				workHistory.title = $("#titleInput").val();
+				workHistory.contract = $("#contractInput").val();
+				workHistory.dateStarted = $("#dateStartedInput").val();
+				workHistory.dateEnded = $("#dateEndedInput").val();
+				workHistory.description = $("#descriptionInput").val();
+
+				// console log
+				console.log("work history input: ", workHistory);
+
+
+				if ($("#workHistoryForm").valid()) {
+					if (aic.page.workHistoryId) {
+						// EDIT MODE ==> PUT
+
+						workHistory.id = aic.page.workHistoryId;
+
+						// get our values, create the data object
+						console.log("work history id within click handler: ", aic.page.workHistoryId);
+
+						// send API call 
+						aic.services.editWorkHistory(aic.page.workHistoryId, workHistory, aic.page.handlers.onEditWorkHistorySuccess);
+					} else {
+						// CREATE mode ==> POST
+
+						// send API call
+						aic.services.createWorkHistory(workHistory, aic.page.handlers.onCreateWorkHistorySuccess);
+
+					}
+				}
+			}; // aic.page.handlers.onSubmitClick
+
+			aic.services.createWorkHistory = function (data, onSuccess) {
+				aic.page.sendAjax("workhistory", aic.page.ajaxType.POST, data, onSuccess);
+			}; //aic.services.createWorkHistory
+
+			aic.page.handlers.onCreateWorkHistorySuccess = function(data, textStatus, jqXHR) {
+				console.log("In aic.page.handlers.onCreateWorkHistorySuccess, XID: " + data.transactionId);
+
+				if (data.isSuccessFul == false) // if unsuccessful
+				{
+					console.log("an issue has occured..."); // console log the error
+
+					// Notify the user 
+					alert("There was a problem adding the work history");
+
+					return; // stop processing
+				};
+
+				// by this point we should have a succesful transmission
+
+				var newWorkHistory =
+					{
+						"id": null,
+						"personID": 1,
+						"companyID": 1,
+						"company": null,
+						"title": null,
+						"contract": null,
+						"dateStarted": null,
+						"dateEnded": null,
+						"description": null,
+						"modifiedBy": null,
+						"modifiedDate": null
+					};
+
+				// set id to data.item
+				aic.page.workHistoryId = data.item;
+
+				// hydrate the data object
+				newWorkHistory.company = $("#companyInput").val();
+				newWorkHistory.title = $("#titleInput").val();
+				newWorkHistory.contract = $("#contractInput").val();
+				newWorkHistory.dateStarted = $("#dateStartedInput").val();
+				newWorkHistory.dateEnded = $("#dateEndedInput").val();
+				newWorkHistory.description = $("#descriptionInput").val();
+				newWorkHistory.id = aic.page.workHistoryId;
+
+				// CONSOLE LOG
+				console.log("work history input: ", newWorkHistory);
+
+				var admin = aic.page.roles.includes("Admin");
+
+				// alert user of success
+				//alert("Work History was added successfully.");
+
+				// reset the form
+				$("#workHistoryForm")[0].reset();
+
+				// redirect to index or edit profile page
+				if (admin == true) {
+					self.location = "/workhistory/index"
+				} else {
+					window.location.href = "http://localhost:1552/Profile/Update"
+				}
+
+			}; //aic.page.handlers.onCreateWorkHistorySuccess
+		}
+		// ## END ADD WORK HISTORY ##
+
+		// ## GET WORK HISTORY BY ID ##
+		{
+			aic.services.getWorkHistoryById = function (id, onSuccess) {
+				aic.page.sendAjax("workhistory/" + id, aic.page.ajaxType.GET, null, onSuccess);
+
+			}; //aic.services.getWorkHistoryById
+
+			aic.page.handlers.onGetWorkHistoryByIdSuccess = function (data, textStatus, jqXHR) {
+
+				if (data.isSuccessFul == false) {
+					console.log("an issue has occured...");
+
+					alert("There was a problem getting the Work History.");
+
+					return;
+				};
+
+				// by now, we should have a successful transmission
+
+				var workHistory = data.item
+
+				var startDate = workHistory.dateStarted;
+				var endDate = workHistory.dateEnded;
+
+				var subStartDate = startDate.substring(0, 10);
+				
+				if (endDate != null) {
+					var subEndDate = endDate.substring(0, 10);
+				}
+
+				//hydrate the form with the values from the data object
+				$("#companyInput").val(workHistory.company);
+				$("#titleInput").val(workHistory.title);
+				$("#dateStartedInput").val(subStartDate);
+				$("#dateEndedInput").val(subEndDate);
+				$("#descriptionInput").val(workHistory.description);
+
+				if (workHistory.contract === false)
+				{
+					$("#contractInput").val("false");
+				} else {
+					$("#contractInput").val("true");
+				}
+
+
+				// change the text to EDIT
+				$("#whSubmitBtn").prop("value", "Edit");
+
+			}; //aic.page.handlers.onGetWorkHistoryByIdSuccess
+
+		};
+		// ## END GET WORK HISTORY BY ID ##
+
+		// ## EDIT WORK HISTORY ##
+		{
+			aic.services.editWorkHistory = function (id, edit, onSuccess) {
+				aic.page.sendAjax("workhistory/" + id, aic.page.ajaxType.PUT, edit, onSuccess);
+			}; //aic.services.editWorkHistory
+
+			aic.page.handlers.onEditWorkHistorySuccess = function (data, textStatus, jqXHR) {
+
+				console.log("In aic.page.handlers.onEditWorkHistorySuccess, XID: " + data.transactionId);
+
+				if (data.isSuccessFul == false) // if unsuccessful
+				{
+					console.log("an issue has occured..."); // console log the error
+
+					// Notify the user 
+					alert("There was a problem editing the work history.");
+
+					return; // stop processing
+				};
+
+				// by this point, we should have a successful transmission
+
+				var editWorkHistory =
+					{
+						"id": null,
+						"personID": 1,
+						"companyID": 1,
+						"company": null,
+						"title": null,
+						"contract": null,
+						"dateStarted": null,
+						"dateEnded": null,
+						"description": null,
+						"modifiedBy": null,
+						"modifiedDate": null
+					};
+
+				// console log current id
+				console.log("current work history id:", aic.page.workHistoryId);
+
+				// hydrate the data object
+				editWorkHistory.company = $("#companyInput").val();
+				editWorkHistory.title = $("#titleInput").val();
+				editWorkHistory.contract = $("#contractInput").val();
+				editWorkHistory.dateStarted = $("#dateStartedInput").val();
+				editWorkHistory.dateEnded = $("#dateEndedInput").val();
+				editWorkHistory.description = $("#descriptionInput").val();
+				editWorkHistory.id = aic.page.workHistoryId;
+
+				var $edit = $("[data-id=" + aic.page.workHistoryId + "]"); 
+
+				var admin = aic.page.roles.includes("Admin");
+
+				//alert user of success
+				alert("Work History was edited succesfully.");
+
+				// if role is admin go back to index, else go to edit profile page
+
+				if (admin == true)
+				{
+					self.location = "/workhistory/index"
+
+				} else {
+
+					self.location = "/profile/update"
+				}
+
+
+			}; //aic.page.handlers.onEditWorkHistorySuccess
+
+		}
+		// ## END EDIT WORK HISTORY ##
+
+	</script>
+	
+	}

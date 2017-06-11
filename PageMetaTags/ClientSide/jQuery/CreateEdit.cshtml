@@ -1,0 +1,383 @@
+﻿@model aic.Web.Models.ViewModels.ItemViewModel<int?>
+@*@model aic.Web.Models.ViewModels.MetaTagsViewModel*@
+
+@{
+	ViewBag.Title = "CreateEdit";
+	Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container" style="padding-top:5px;padding-bottom:10px">
+	<h2>Facebook & LinkedIn Tags</h2>
+	<br />
+	<h4 id="ownerTypeName">Currently viewing meta tags for the "www.aninsideconnection.com/<span></span>" page.</h4>
+	<div class="col-md-9" id="MetaTagsContainer">
+		<br>
+		<h1 class="text-center space-top" id="createMetaTag"></h1>
+		<div class="separator"></div>
+		<form class="form-group" id="metaTagForm">
+			<h5>Title</h5>
+			<input class="form-control" type="text" name="mtTitleInput" id="mtTitleInput">
+			<h5>Image URL</h5>
+			<input class="form-control" type="text" name="mtImgUrlInput" id="mtImgUrlInput">
+			<h5>Page URL</h5>
+			<input class="form-control" type="text" name="mtUrlInput" id="mtUrlInput">
+			<h5>Description</h5>
+			<input class="form-control" type="text" name="mtDescrInput" id="mtDescrInput">
+		</form>
+		<br />
+		<br />
+		<input type="submit" value="Submit" class="btn btn-cta btn-cta-primary" id="mtSubmitBtn">
+
+	</div><!-- Meta Tag Entry Form Container-->
+	@*  we render the value from the model using this syntax *@
+	<input type="hidden" id="ownerTypeId" value="@Model.Item" />
+	@*<input type="hidden" id="ownerTypeId" value="@Model.id" />
+	<input type="hidden" id="ownerTypeName" value="@Model.ownerName" />*@
+
+
+</div>
+
+<br />
+
+@section scripts {
+	<script type="text/javascript">
+
+
+		aic.page.startUp = function () {
+			console.log("In aic.page.startUp");
+			aic.page.ownerTypeId = $("#ownerTypeId").val();
+			//aic.page.ownerTypeName = $("#ownerTypeName").val();
+
+			$("#mtSubmitBtn").on("click", aic.page.handlers.onSubmitClick)
+
+			//if (aic.page.ownerTypeId) {
+
+				console.log("Owner Type ID on startup", aic.page.ownerTypeId);
+
+				// get meta tag values to hydrate form
+				aic.services.getPmtByOwnerTypeId(aic.page.ownerTypeId, aic.page.handlers.onGetPmtByOwnerTypeIdSuccess);
+
+				//console.log("current path:", window.location)
+
+			//if (aic.page.pageMetaTagId) {
+			//	console.log("Page Meta Tag ID on startup: ", aic.page.pageMetaTagId);
+
+			//	aic.services.getPageMetaTagsById(aic.page.pageMetaTagId, aic.page.handlers.onGetPageMetaTagsByIdSuccess);
+			}; //aic.page.startUp
+
+			// ## ADD META TAG ##
+			{
+				aic.page.handlers.onSubmitClick = function (e) {
+					if (e) {
+						e.preventDefault();
+					}
+
+					console.log("In aic.page.handlers.onSubmitClick")
+
+					var pageMetaTag =
+						{
+							"title": null,
+							"imgUrl": null,
+							"pageUrl": null,
+							"description": null, 
+							"ownertype": null
+						};
+
+					// hydrate data obj with input values from form
+					pageMetaTag.title = $("#mtTitleInput").val();
+					pageMetaTag.imgUrl = $("#mtImgUrlInput").val();
+					pageMetaTag.pageUrl = $("#mtUrlInput").val();
+					pageMetaTag.description = $("#mtDescrInput").val();
+
+					// console log
+					console.log("meta tag input:", pageMetaTag)
+
+					aic.services.createPageMetaTag(aic.page.ownerTypeId, pageMetaTag, aic.page.handlers.onCreatePageMetaTagSuccess, aic.page.handlers.onCreatePageMetaTagsError);
+
+					/*
+					//if ($("#metaTagForm").valid()) {
+					if (aic.page.ownerTypeId) {
+							// EDIT MODE ==> PUT
+
+							// get our values, create the data object
+						console.log("owner type id within click handler: ", aic.page.ownerTypeId);
+
+							// send API call 
+							aic.services.editPageMetaTag(aic.page.ownerTypeId, pageMetaTag, aic.page.handlers.onEditPageMetaTagSuccess);
+						} else {
+							// CREATE mode ==> POST
+
+							// send API call
+							aic.services.createPageMetaTag(pageMetaTag, aic.page.handlers.onCreatePageMetaTagSuccess);
+
+						} */
+					//}
+
+				}; // aic.page.handlers.onSubmitClick
+
+				aic.services.createPageMetaTag = function (id, data, onSuccess, onError) { 
+				    aic.page.sendAjax("metatags/page/" + id, "POST", data, onSuccess);
+
+				        //// 1. Create URL
+				        //var url = '/api/metatags/page/' + id
+
+				        //// step 2: Create our Package (C2D2SET)dd
+				        //var settings = {
+				        //    /*C2D2SET*/
+				        //    cache: false, // <== usually set to FALSE will tell teh endpoint not to cache the page
+				        //    contentType: 'application/x-www-form-urlencoded; charset=UTF-8', // <== this is the format our content will be in
+
+				        //    dataType: 'json', // <== format our data is in
+				        //    data: data, // <== our payload (an object, a simple object)
+
+				        //    success: onSuccess, // <== method will fire if the endpoint tells us transmission is successful
+				        //    error: onError, // <== method will fire if endpoint throws an error
+				        //    type: 'POST', // <== the type of request (GET, POST, PUT, DELETE)
+				        //    xhrFields: {
+				        //        withCredentials: true
+				        //    }
+				        //};
+
+				        //if (data != null) {
+
+				        //    if (typeof (data) == 'string') {
+				        //        settings.data = data; //our payload (an object, a simple object)
+				        //    } else {
+				        //        settings.data = JSON.stringify(data) // convert to string
+				        //        settings.contentType = 'application/json'
+				        //    }
+				        //}
+
+				        //// STEP 3: Send the pacakage to the endpoint
+
+				        //$.ajax(url, settings);
+				}; //aic.services.createPageMetaTag
+
+				aic.page.handlers.onCreatePageMetaTagSuccess = function (data, textStatus, jqXHR) {
+					console.log("In aic.page.handlers.onCreatePageMetaTagSuccess");
+
+					if (data.isSuccessFul == false) // if unsuccessful
+					{
+						console.log("an issue has occured..."); // console log the error
+
+						// Notify the user 
+						alert("There was a problem adding the meta tags");
+
+						return; // stop processing
+					};
+
+					// by this point we should have a succesful transmission
+
+					var newPageMetaTag =
+						{
+							"title": null,
+							"imgUrl": null,
+							"pageUrl": null,
+							"description": null,
+							"ownertype": null
+						};
+
+					console.log("data.item in success", data.item);
+
+					// set id to data.item
+					aic.page.ownerTypeId = data.item;
+
+					// hydrate data obj with input values from form
+					newPageMetaTag.title = $("#mtTitleInput").val();
+					newPageMetaTag.imgUrl = $("#mtImgUrlInput").val();
+					newPageMetaTag.pageUrl = $("#mtUrlInput").val();
+					newPageMetaTag.description = $("#mtDescrInput").val();
+
+					// console log 
+					console.log("meta tag input: ", newPageMetaTag);
+
+					// reset the form
+					$("#metaTagForm")[0].reset();
+
+					//redirect to index
+					self.location = "/pagemetatags/index"
+				}; // aic.page.handlers.onCreatePageMetaTagSuccess
+
+				aic.page.handlers.onCreatePageMetaTagsError = function (jqXHR, textStatus, errorThrown) {
+
+				    var currentPage = window.location.pathname
+
+				    //console.log(jqXHR);
+
+				    var data = {
+				        "errorFunction": jqXHR.status,
+				        "errorMessage": errorThrown + " - " + currentPage + " - " + jqXHR.responseText,
+				        "userId": aic.page.personId // TODO: check to Logged in User
+				    }
+
+				    if (aic.page.personId) {
+				        aic.services.createErrorLog(data);
+
+				    } else {
+				        data.userId = null; // if not logged in
+				        //console.log(data.userId);
+				        aic.services.createErrorLog(data);
+				    }
+
+				    //console.log(data.userId);
+
+				    // TODO add modals
+				    switch (jqXHR.status) {
+				        case 401: alert(errorThrown + " - The email or password you've entered is invalid. Please try again.")
+				            break;
+				        case 200:
+				            alert(errorThrown)
+				            break;
+
+				        default: alert(jqXHR.status + " " + errorThrown + " on " + currentPage)
+				            break;
+				    }
+
+				}
+			}
+			// ## END ADD META TAG ##
+
+			// ## GET META TAG VALUE BY OWNER TYPE ID ##
+			{
+			    aic.services.getPmtByOwnerTypeId = function (id, onSuccess) {
+    				aic.page.sendAjax("metatags/single/" + id, "GET", null, aic.page.handlers.onGetPmtByOwnerTypeIdSuccess);
+			}; //aic.services.getPmtByOwnerTypeId
+
+			aic.page.handlers.onGetPmtByOwnerTypeIdSuccess = function (data, textStatus, jqXHR) {
+				if (data.isSuccessFul == false) {
+					console.log("an issue has occured...");
+
+					alert("There was a problem getting the Work History.");
+
+					return;
+				};
+
+				// by now, we should have a successful transmission
+
+				//console.log(data.items);
+
+				if (data.items != null)
+				{
+					var pageMetaTags = data.items;
+
+					//console.log(pageMetaTags);
+
+					if (data.items[0].name != "http://localhost:1552/") {
+						var mtOwnerType = data.items[0].name;
+					} else {
+						var mtOwnerType = "home";
+					};
+
+					var metaTagTitle = data.items[0].value;
+					var metaTagImgUrl = data.items[2].value;
+					var metaTagUrl = data.items[3].value;
+					var metaTagDescr = data.items[4].value;
+
+					console.log(mtOwnerType);
+
+					// hydrate the form with the values from the data object by using indexes of the array
+					$("#ownerTypeName span").text(mtOwnerType);
+					$("#mtTitleInput").val(metaTagTitle);
+					$("#mtImgUrlInput").val(metaTagImgUrl);
+					$("#mtUrlInput").val(metaTagUrl);
+					$("#mtDescrInput").val(metaTagDescr);
+
+					//// hydrate the form with the values from the data object by using indexes of the array
+					//$("#mtTitleInput").val(pageMetaTags[0]);
+					//$("#mtImgUrlInput").val(pageMetaTags[2]);
+					//$("#mtUrlInput").val(pageMetaTags[3]);
+					//$("#mtUrlInput").val(pageMetaTags[4]);
+				}
+				// change the text to EDIT
+				//$("#mtSubmitBtn").prop("value", "Edit");
+
+			}; //aic.page.handlers.onGetPmtByOwnerTypeIdSuccess
+
+			}
+			 // ## END GET META TAG VALUE BY OWNER TYPE ID ##
+
+			// ## GET META TAG BY ID ## -- CANNOT USE SINCE WE NEED FOUR ENTRIES LINKED BY SAME OWNER
+			{
+				aic.services.getPageMetaTagsById = function (id, onSuccess) {
+					aic.page.sendAjax("metatags/page/" + id, "GET", null, aic.page.handlers.onGetPageMetaTagsByIdSuccess);
+				}; //aic.services.getPageMetaTagsById
+
+				aic.page.handlers.onGetPageMetaTagsByIdSuccess = function (data, textStatus, jqXHR) {
+					if (data.isSuccessFul == false) {
+						console.log("an issue has occured...");
+
+						alert("There was a problem getting the Work History.");
+
+						return;
+					};
+
+					// by now, we should have a successful transmission
+
+					var pageMetaTag = data.item
+
+					//hydrate the form with the values from the data object
+					$("#mtNameInput").val(pageMetaTag.metaTagName);
+					$("#mtValueInput").val(pageMetaTag.metaTagValue);
+					$("#mtOwnerInput").val(pageMetaTag.ownerName);
+
+					// change the text to EDIT
+					$("#mtSubmitBtn").prop("value", "Edit");
+
+				}; //aic.page.handlers.onGetPageMetaTagsByIdSuccess
+			}
+			// ## END GET META TAG BY ID ##
+
+			// ## EDIT META TAG ##
+			{
+				aic.services.editPageMetaTag = function (id, edit, onSuccess) {
+					aic.page.sendAjax("metatags/page/" + id, "PUT", edit, onSuccess);
+				}; //aic.services.editPageMetaTag
+
+				aic.page.handlers.onEditPageMetaTagSuccess = function (data, textStaus, jqXHR) {
+
+					console.log("In aic.page.handlers.onEditPageMetaTagSuccess, XID: " + data.transactionId);
+
+					if (data.isSuccessFul == false) // if unsuccessful
+					{
+						console.log("an issue has occured..."); // console log the error
+
+						// Notify the user 
+						alert("There was a problem editing the work history.");
+
+						return; // stop processing
+					};
+
+				// by this point, we should have a successful transmission
+
+					var editPageMetaTag =
+						{
+							"title": null,
+							"imgUrl": null,
+							"pageUrl": null,
+							"description": null,
+							"ownertype": null
+						};
+
+					// console olog
+					console.log("current meta tag id: ", aic.page.ownerTypeId);
+
+					// hydrate data object
+					editPageMetaTag.title = $("#mtTitleInput").val();
+					editPageMetaTag.imgUrl = $("#mtImgUrlInput").val();
+					editPageMetaTag.pageUrl = $("#mtUrlInput").val();
+					editPageMetaTag.description = $("#mtDescrInput").val();
+
+					var $edit = $("[data-id=" + aic.page.workHistoryId + "]"); 
+
+					//alert user of success
+					alert("Meta Tag was edited succesfully.");
+
+					// go back to index
+					self.location = "/pagemetatags/index"
+				}; //aic.page.handlers.onEditPageMetaTagSuccess
+			}
+			// ## END EDIT META TAG ##
+
+	</script>
+	
+	}

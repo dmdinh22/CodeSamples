@@ -1,0 +1,63 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div class="container">
+    <h1>Work History Index - Angular</h1>
+
+    @Html.ActionLink("Add Work History", "Create", new { area = "" }, new { @class = "btn btn-cta btn-cta-primary" })
+    <input type="button" class="btn btn-cta btn-cta-secondary" id="backBtn" name="backBtn" value="Back" onclick="history.back(-1)" />
+    <hr />
+    <!--
+       the "as" syntax here is used to simply give a friendlier name to the controller.
+       within this div we have to reference the controller by this name:phoneCtrler.
+       the controller in this design also holds the data.
+       see https://docs.angularjs.org/api/ng/directive/ngController
+    -->
+
+    <div class="container list-group workHistoryContainer" data-ng-controller="workHistoryController as wrkHstyCtrler" id="wrkHstyCtrler">
+        <!-- Work History Template goes here-->
+        <!--
+            the ng-repeat is creating a for loop to iterate through the wrkHstyCtrler.items array.
+            phoneCtrler.items is an array of users which is pulled from the API as JSON data and attached to the controller
+            in the ajax call's success handler.
+            see https://docs.angularjs.org/api/ng/directive/ngRepeat
+        -->
+        <div class="row animate-repeat" data-ng-repeat="job in wrkHstyCtrler.items track by job.id">
+            <div class="list-group-item" ng-cloak>
+                <p class="list-group-item-text company">Company: <span>{{job.company}}</span></p>
+                <p class="list-group-item-text title">Title: <span>{{job.title}}</span></p>
+                <p class="list-group-item-text contract">Contracted: <span>{{job.contractString}}</span></p>
+                <p class="list-group-item-text datesWorked">Dates at Company: <span>{{job.dateStarted | date: 'MM-dd-yyyy'}} to {{job.dateEnded ? (job.dateEnded | date: 'MM-dd-yyyy') : 'Present'}}</span></p>
+                <p class="list-group-item-text description" style="word-break: break-all">Description: <span>{{job.description}}</span></p>
+                <br />
+                <div class="btn-group">
+                    <button class="btn btn-cta-primary btn-sm editJob"
+                            ng-cloak
+                            ng-click="wrkHstyCtrler.goToEdit(job)">
+                        Edit
+                    </button> <!--pass in phone object-->
+                    <button class="btn btn-cta-secondary btn-sm deletePhone"
+                            ng-cloak
+                            ng-click="wrkHstyCtrler.deleteWorkHistory(job)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/html" id="workHistoryTemplate">
+
+
+</script>
+
+
+@section scripts {
+
+    <script src="~/Scripts/aic/aic.services.workhistory.js"></script>
+    <script src="~/Scripts/aic/core/service-factories/aic.service.workhistory.factory.js"></script>
+    <script src="~/Scripts/aic/core/controllers/aic.controller.workhistory.index.js"></script>
+}

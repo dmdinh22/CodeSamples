@@ -1,0 +1,391 @@
+﻿
+@{
+	ViewBag.Title = "PageMetaTagsIndex";
+	Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+	<h1>Meta Tags Owner Type (URL)</h1>
+	@*@Html.ActionLink("Add Meta Tags", "Create", new { area = "" }, new { @class = "btn btn-cta btn-cta-primary" })*@
+	<hr />
+	<div class="container list-group ownerTypeContainer">
+		<!-- Current Owner Type Clones go here-->
+	</div>
+	<button id="addOwnerTypeBtn" type="button" class="btn btn-primary" 
+			data-toggle="modal" data-target="#addOwnerTypeModal">Add Owner Type</button>
+</div>
+
+<div class="container">
+	<h1>Meta Tags Owner Type (URL)</h1>
+	<hr />
+	<div class="container list-group ownerTypeContainer">
+		<!-- Current Owner Type Clones go here-->
+	</div>
+	<button id="addOwnerTypeBtn" type="button" class="btn btn-primary"
+			data-toggle="modal" data-target="#addOwnerTypeModal">
+		Add Owner Type
+	</button>
+</div>
+
+<div class="modal fade" role="dialog" id="deleteModal" data-id="null">
+	<div class="modal-dialog">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Delete confirmation</h4>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to delete this owner type?</p>
+			</div>
+			<div class="modal-footer">
+
+				<div class="btn-group">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+					<button type="button" id="deleteConfirm" class="btn btn-danger">Yes</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div> <!--#deleteModal-->
+
+<div class="modal fade" role="dialog" id="deleteConfirmModal" data-id="null">
+	<div class="modal-dialog">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Delete confirmation</h4>
+			</div>
+			<div class="modal-body">
+				<p>Are you REALLY sure? This is very dangerous. If you delete this, the page will no longer have any meta tags. </p>
+			</div>
+			<div class="modal-footer">
+
+				<div class="btn-group">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+					<button type="button" id="deleteReallyConfirm" class="btn btn-danger">Yes</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div> <!--#deleteConfirmModal-->
+
+<div class="modal fade" id="addOwnerTypeModal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Add New Owner Type</h4>
+			</div>
+			<div class="modal-body">
+				<div class="replies-form">
+					<form id="ownerTypeForm">
+						<div id="ownerTypeUrl" class="form-group">
+							<label for="ownerTypeUrlInput">Page URL</label>
+							<input type="text" class="form-control" id="ownerTypeUrlInput" placeholder="Url">
+						</div>
+						<div id="ownerTypeDesc" class="form-group">
+							<label for="ownerTypeDescInput">Description</label>
+							<input type="text" class="form-control" id="ownerTypeDescInput" placeholder="Description">
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<input type="button" value="Submit" class="btn btn-success submitBtn"
+					   data-formid="ownerTypeAdd" data-dismiss="modal">
+
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- #addOwnerTypeModal -->
+
+<script type="text/html" id="ownerTypeTemplate">
+	<div class="list-group-item">
+		<h1 class="list-group-item-text otName" style="font-size:18px">Default</h1>
+		<br />
+		<div class="btn-group">
+			<input type="button" name="editMetaTags" class="btn btn-sm btn-cta btn-cta-primary editOt" value="Edit" />
+			<input type="button" name="deleteMetaTags" class="btn btn-sm btn-cta btn-cta-secondary deleteOt" value="Delete" />
+		</div>
+	</div>
+
+</script> <!--#ownerTypeTemplate-->
+
+@section scripts {
+
+	<script type="text/javascript">
+		// ## UTILITY FUNCTIONS ##
+		{
+			aic.page.getClone = function (template) {
+				// get template
+				var $template = $(template);
+				// pull html of template
+				var html = $template.html();
+				// load html into jQuery object
+				var $html = $(html);
+				// clone jQuery object
+				var $clone = $html.clone();
+
+				return $clone;
+			} //aic.page.getClone
+		}
+		// ## END UTILITY FUNCTIONS ##
+	</script> <!-- Utility Methods/ Global vars-->
+
+	<script type="text/javascript">
+		aic.page.startUp = function () {
+			console.log("In aic.page.startUp")
+
+			// hydrate page with owner type from SQL
+			aic.services.getOwnerType(aic.page.handlers.onGetOwnerTypeSuccess);
+
+			// add new owner type
+			$(".submitBtn").on("click", aic.page.handlers.onAddOTClick);
+
+			// delegated delete binding
+			$(".ownerTypeContainer").on("click", ".deleteOt", aic.page.handlers.onDeleteClick);
+
+			// delete confirmation
+			$("#deleteConfirm").on("click", aic.page.handlers.onDeleteConfirmation);
+
+			// delete double confirmation
+			$("#deleteReallyConfirm").on("click", aic.page.handlers.onDeleteDoubleConfirmation);
+
+			// delegated edit binding
+			$(".ownerTypeContainer").on("click", ".editOt", aic.page.handlers.onEditClick);
+
+		} //aic.page.startUp
+
+		// ## ADD OWNER TYPE ##
+		{
+			aic.page.handlers.onAddOTClick = function (e) {
+				console.log("In aic.page.handlers.onAddOTClick");
+
+				if (e) {
+					e.preventDefault();
+				};
+
+				// create new data object
+				var ownerType = {
+					"id": null,
+					"name": null,
+					"description": null
+				};
+
+				// hydrate our object with values from modal
+				var fullUrlName = $("#ownerTypeUrlInput").val();
+				var lastSegment = fullUrlName.substr(fullUrlName.lastIndexOf('/') + 1).toLowerCase(); //grab everything after the last /
+
+				console.log(lastSegment);
+				
+				ownerType.name = lastSegment;
+				ownerType.description = $("#ownerTypeDescInput").val();
+
+				// get data id
+
+				// ajax call
+				aic.services.createOwnerType(ownerType, aic.page.handlers.onCreateOwnerTypeSuccess);
+
+			}; //aic.page.handlers.onAddOTClick
+
+			aic.services.createOwnerType = function (data, onSuccess) {
+				aic.page.sendAjax("metatags/ownertype", "POST", data, onSuccess);
+			}
+
+			aic.page.handlers.onCreateOwnerTypeSuccess = function (data, textStatus, jqXHR) {
+				console.log("In aic.page.handlers.onCreateOwnerTypeSuccess");
+
+				if (data.isSuccessFul == false) // if unsuccessful
+				{
+					console.log("an issue has occured..."); // console log the error
+
+					// Notify the user
+					alert("There was a problem adding the work history");
+
+					return; // stop processing
+				};
+
+				// by this point we should have a succesful transmission
+
+				var newOwnerType = {
+					"id": null,
+					"name": null,
+					"description": null
+				};
+
+				ownerTypeId = data.item;
+
+				// hydrate data object with form values
+				newOwnerType.id = ownerTypeId;
+				newOwnerType.name = $("#ownerTypeUrlInput").val();
+				newOwnerType.description = $("#ownerTypeDescInput").val();
+
+				console.log("new owner type", newOwnerType);
+
+				//reset modal
+				$("#ownerTypeForm")[0].reset();
+
+
+				//redirect to index
+				self.location = "/admin/pagemetatagsNG/" + ownerTypeId + "/edit/";
+
+			}; //aic.page.handlers.onCreateOwnerTypeSuccess
+		}
+		// ## END ADD OWNER TYPE ##
+
+		// ## GET OWNER TYPE ##
+		{
+			aic.services.getOwnerType = function (onSuccess) {
+				aic.page.sendAjax("metatags/ownertype", "GET", null, onSuccess);
+			}; // aic.services.getOwnerType
+
+			aic.page.handlers.onGetOwnerTypeSuccess = function (data, textStatus, jqXHR) {
+				var ownerTypeArray = data.items;
+
+				if (ownerTypeArray.length != null) {
+					for (i = 0; i < ownerTypeArray.length; i++) {
+						// get the current meta tag
+						var currentOwnerType = ownerTypeArray[i];
+
+						//TCHA
+						var $ownerType = aic.page.getClone("#ownerTypeTemplate");
+
+						// hydrate clone object
+						$ownerType.attr("data-id", currentOwnerType.id);
+						$ownerType.find(".otName").text(currentOwnerType.description);
+
+						//append clone to DOM
+						$ownerType.appendTo(".ownerTypeContainer");
+					};
+				}
+			}; // aic.page.handlers.onGetMetaTagsSuccess
+		}
+		// ## END GET OWNER TYPE ##
+
+		// ## EDIT META TAGS ##
+		{
+			aic.page.handlers.onEditClick = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				var $this = $(this)
+
+				// find closest work historty div
+				var $currentOwnerType = $this.closest(".list-group-item").data("id");
+
+				// redirect to proper edit page
+				self.location = "/pagemetatagsNG/" + $currentOwnerType + "/edit";
+
+			}; //aic.page.handlers.onEditClick
+		}
+		// ## END EDIT META TAGS ##
+
+		// ## DELETE ##
+		{
+			aic.page.handlers.onDeleteClick = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				var $this = $(this);
+
+				aic.page.deleteId = $this.closest(".list-group-item").data("id");
+
+				console.log(aic.page.deleteId);
+
+				//console.log("$currentOwnerType", aic.page.deleteId);
+
+				//// add the data-id to the targeted div
+				//$("#deleteModal").data("id", aic.page.deleteId);
+
+				// show confirmation modal
+				$("#deleteModal").modal("show");
+
+			}; //aic.page.handlers.onDeleteClick
+
+			aic.services.deleteOwnerType = function (deleteId, onSuccess) {
+				aic.page.sendAjax("metatags/ownertype/" + deleteId, "DELETE", null, onSuccess);
+			}; //aic.services.deleteOwnerType
+
+			aic.page.handlers.onDeleteConfirmation = function (e) {
+				if (e) {
+					e.preventDefault();
+				}
+
+				//var deleteId = $("#deleteModal").data("id");
+
+				//show second moodal
+				$("#deleteConfirmModal").modal("show");
+
+				// hide first modal
+				 $("#deleteModal").modal("hide");
+
+			}; //aic.page.handlers.onDeleteConfirmation
+
+			aic.page.handlers.onDeleteDoubleConfirmation = function (e)
+			{
+				if (e) {
+					e.preventDefault();
+				}
+
+				console.log("aic.page.deleteId", aic.page.deleteId);
+
+				//send ajax call
+				aic.services.deleteOwnerType(aic.page.deleteId, aic.page.handlers.onDeleteConfirmSuccess);
+			}
+
+			aic.page.handlers.onDeleteConfirmSuccess = function (data, textStatus, jqXHR) {
+				var deleteId = aic.page.deleteId; //$("#deleteModal").data("id");
+
+				console.log("deleteId", deleteId);
+
+				var currentOwnerType = $(".ownerTypeContainer").find("[data-id=" + deleteId + "]");
+
+				$("#deleteConfirmModal").modal("hide");
+				//$("#deleteModal").data("id", null);
+
+				// delete
+				currentOwnerType.remove();
+			}; //aic.page.handlers.onDeleteConfirmSuccess
+		}
+		// ## END DELETE ##
+
+		aic.services.getMetaTags = function (onSuccess) {
+			aic.page.sendAjax("metatags/", "GET", null, onSuccess);
+		}; //aic.services.getMetaTags
+
+		aic.page.handlers.onGetMetaTagsSuccess = function (data, textStatus, jqXHR) {
+			var metaTagsArray = data.items;
+
+			console.log(metaTagsArray);
+
+			if (metaTagsArray.length != null) {
+				for (i = 0; i < metaTagsArray.length; i++) {
+					// get the current meta tag
+					var currentMetaTag = metaTagsArray[i];
+
+					//TCHA
+					var $metaTag = aic.page.getClone("#metaTagsTemplate");
+
+					// hydrate clone object
+					$metaTag.attr("data-id", currentMetaTag.id);
+					$metaTag.find(".mtName span").text(currentMetaTag.metaTagName);
+					$metaTag.find(".mtValue span").text(currentMetaTag.metaTagValue);
+					$metaTag.find(".mtOwnerName span").text(currentMetaTag.ownerName);
+
+					//append clone to DOM
+					$metaTag.appendTo(".metaTagsContainer");
+				};
+			}
+		}; // aic.page.handlers.onGetMetaTagsSuccess
+
+	</script>
+
+
+}

@@ -1,0 +1,132 @@
+﻿@model aic.Web.Models.ViewModels.ItemViewModel<int?>
+
+@{
+    ViewBag.Title = "Manage";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<body ng-controller="workHistoryController as job">
+    <div class="container" style="padding-top:5px;padding-bottom:10px">
+        <br />
+        <div ng-cloak class="page-header"><h2><span class="check-{{job.jobId}}">{{job.jobId ? 'Edit' : 'Add'}}</span> Work History - Angular</h2></div>
+        <div class="col-md-12" id="WorkHistoryContainer">
+            <br>
+            <h1 class="text-center space-top" id="createWorkHistory"></h1>
+            <div class="separator"></div>
+            <!--FORM-->
+            <form role="form" name="jobForm" id="jobForm" class="form-group" display="inline-block" novalidate>
+
+                <!--COMPANY-->
+                <h5>Company</h5>
+                <div class="form-group" ng-class="{'has-error' : jobForm.company.$invalid
+                         && !jobForm.company.$pristine}">
+                    <label class="sr-only" for="company">Company</label>
+                    <input type="text" maxlength="50" size="5" class="form-control" display="inline-block"
+                           id="company" placeholder="Company Name" name="company" ng-minlength="1" ng-maxlength="50"
+                           ng-model="job.jobItem.company"
+                           required>
+                    <p ng-show="jobForm.company.$invalid
+                           && !jobForm.company.$pristine" 
+                           ng-cloak class="help-block">The company name is required</p>
+                    <p ng-show="jobForm.company.$error.minlength" 
+                            ng-cloak class="help-block">The company name is too short.</p>
+                </div>
+
+                <!--TITLE-->
+                <h5>Title</h5>
+                <div class="form-group" ng-class="{'has-error' : jobForm.title.$invalid
+                         && !jobForm.title.$pristine}">
+                    <label class="sr-only" for="title">Title</label>
+                    <input type="text" maxlength="50" size="5" class="form-control" display="inline-block"
+                           id="title" placeholder="Job Title" name="title" ng-minlength="1" ng-maxlength="50"
+                           ng-model="job.jobItem.title"
+                           ng-cloak required>
+                    <p ng-show="jobForm.title.$invalid
+                           && !jobForm.title.$pristine" 
+                           ng-cloak class="help-block">The job title is required</p>
+                    <p ng-show="jobForm.title.$error.minlength"
+                           ng-cloak class="help-block">The job title is too short.</p>
+                </div>
+
+                <!--DATES-->
+                <h5>Date Started</h5>
+                <div class="form-group" ng-class="{ 'has-error' : jobForm.dateStarted.$invalid && !jobForm.dateStarted.$untouched }">
+                    <!--<label for="dateStarted">Date Started</label>-->
+                    <input type="date" class="form-control" id="dateStarted" placeholder="Enter start date" name="dateStarted"
+                           ng-model="job.jobItem.dateStarted" ng-value="job.jobItem.dateStarted"
+                           max="{{job.maxStartDate | date : 'yyyy-MM-dd'}}"
+                           ng-pattern="/^((\d{4})-(\d{2})-(\d{2})|(\d{2})\/(\d{2})\/(\d{4}))$/" required />
+                    <p ng-show="jobForm.dateStarted.$invalid && !jobForm.dateStarted.$untouched" 
+                           ng-cloak class="help-block">Please enter a valid start date.</p>
+                </div>
+                @*<div>
+                    
+                    <input type="datetime-local" id="dateStarted" name="input" ng-model="job.jobItem.dateStarted"
+                           placeholder="yyyy-MM-dd" min="2001-01-01" required />
+                </div>*@
+                <div>
+                    <h5>Date Ended</h5>
+                    <div class="form-group"
+                         ng-class="{ 'has-error' : jobForm.dateEnded.$invalid && !jobForm.dateEnded.$untouched }">
+                        <!--<label for="dateEnded">Date Ended</label>-->
+                        <input type="date" class="form-control" id="dateEnded" placeholder="Enter end date" name="dateEnded"
+                               ng-model="job.jobItem.dateEnded" ng-value="job.jobItem.dateEnded"
+                               max="{{job.maxEndDate | date : 'yyyy-MM-dd'}}"
+                               ng-pattern="/^((\d{4})-(\d{2})-(\d{2})|(\d{2})\/(\d{2})\/(\d{4}))$/" /> <!--required-->
+                        <p ng-show="jobForm.dateEnded.$invalid && !jobForm.dateEnded.$untouched" 
+                               ng-cloak class="help-block">Please enter a valid end date.</p>
+                    </div>                
+                </div>
+
+                <!--DESCRIPTION-->
+                <h5>Description</h5>
+                <div class="form-group" ng-class="{'has-error' : jobForm.description.$invalid && !jobForm.description.$pristine}">
+                    <label class="sr-only" for="jobdesc">Job Description</label>
+                    <input type="text" maxlength="200" size="5" class="form-control" display="inline-block"
+                           id="jobdesc" placeholder="Job Description" name="jobdesc" ng-minlength="5" ng-maxlength="200"
+                           ng-model="job.jobItem.description" required>
+                    <p ng-show="jobForm.description.$invalid
+                           && !jobForm.description.$pristine" 
+                           ng-cloak class="help-block">The job description is required</p>
+                    <p ng-show="jobForm.description.$error.minlength" 
+                           ng-cloak class="help-block">The job description is too short.</p>
+                </div>
+                <!--CONTRACTED-->
+                <h5>Contracted?</h5>
+                <div class="form-group" ng-class="{ 'has-error' : jobForm.contract.$error.required && jobForm.contract.$touched}">
+                    <!--<label for="recommended">Contracted?</label>-->
+                    <select class="form-control" id="contract" name="contract"
+                            ng-model="job.jobItem.contractString"
+                            ng-options="option as option for option in job.contractOptions" required>
+                        <option value="">Select Yes or No</option>
+                    </select>
+                    <p class="help-block" ng-cloak ng-show="jobForm.contract.$error.required && jobForm.contract.$touched">Required</p>
+                </div>
+            </form>
+            <br />
+            <br />
+            <!--<input type="submit" value="Submit" class="btn btn-cta btn-cta-primary" id="whSubmitBtn">-->
+            <button type="submit" class="btn btn-cta btn-cta-primary"
+                            ng-click="job.submitForm(jobForm)" @*- pass in the form obj in function*@
+                            ng-disabled="jobForm.$invalid" 
+                            ng-cloak>{{job.jobId ? 'Edit' : 'Submit'}}</button>
+            <input type="button" class="btn btn-cta btn-cta-secondary" id="backBtn" name="backBtn" value="Back" onclick="history.back(-1)" />
+
+        </div><!-- Work History Entry Form Container-->
+        @*  we render the value from the model using this syntax *@
+        <input type="hidden" id="workHistoryId" value="@Model.Item" />
+    </div>
+    <br />
+
+
+</body>
+
+@section scripts {
+    <script>
+
+        </script>
+    <script src="~/Scripts/aic/aic.services.workhistory.js"></script>
+    <script src="~/Scripts/aic/core/service-factories/aic.service.workhistory.factory.js"></script>
+    <script src="~/Scripts/aic/core/controllers/aic.controller.workhistory.manage.js"></script>
+    }
+

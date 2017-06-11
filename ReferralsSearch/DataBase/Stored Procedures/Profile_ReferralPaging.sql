@@ -1,4 +1,4 @@
-ALTER PROC [dbo].[Profile_ReferralPaging]
+CREATE PROC [dbo].[Profile_ReferralPaging]
 	@PersonID int,
 	@PageNum int,
 	@PageSize int
@@ -8,7 +8,6 @@ AS
 BEGIN
 
 	WITH results AS
-	--select results.* from
 	(select wh.PersonID, 
 			   p.FirstName,
 			   p.LastName,
