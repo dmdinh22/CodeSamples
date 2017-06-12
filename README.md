@@ -1,5 +1,5 @@
 # CodeSamples
-Code samples from my AIC.
+Code samples from my work at AIC.
 
 I <3 C#!
 
