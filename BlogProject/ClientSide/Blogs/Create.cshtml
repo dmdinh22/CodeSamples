@@ -1,0 +1,144 @@
+﻿
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Create</h2>
+
+<div class="col-md-6" id="blogInputContainer">
+    <form>
+        <div class="form-group">
+            <label for="blogTitleInput">Blog Title</label>
+            <input type="text" class="form-control" id="blogTitleInput" placeholder="Title">
+        </div>
+        <div class="form-group">
+            <label for="blogEmailInput">Blog Email</label>
+            <input type="email" class="form-control" id="blogEmailInput" placeholder="Email">
+        </div>
+        <div class="form-group">
+            <label for="blogContentInput">Blog Content</label>
+            <textarea class="form-control" id="blogContentInput" placeholder="Content"></textarea>
+        </div>
+        <div class="btn-group">
+            @Html.ActionLink("Back", "", null, new { @class = "btn btn-default" })
+            <button id="createBlogButton" type="button" class="btn btn-primary">Create Blog</button>
+        </div>
+    </form>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        dinh.page.startUp = function () {
+            console.log("startup entered");
+
+            // Wire up our buttons
+            $("#createBlogButton").on("click", dinh.page.handlers.onCreateBlogClick);
+            
+        } // dinh.page.startUp
+
+        // ## CREATING A NEW BLOG ##
+        {
+            // this method will fire when we click the Create Blog button
+            dinh.page.handlers.onCreateBlogClick = function (e) {
+                // prevent our default action
+                if (e)
+                    e.preventDefault();
+
+                // step 2: validate the form
+                var $form = $("#blogInputContainer");
+                var formValid = dinh.page.validate($form) //check if form is invalid
+
+                if (formValid == false) // page is invalid
+                {
+                    console.log("The form is invalid, does not have all inputs."); // console log the issue
+
+                    // update the alert to be a modal
+                    // alert("Please check your inputs and fill them all in... for once...");
+                    dinh.page.alert("Please check your inputs and fill them all in... for once...");
+
+                    return; // stop processing
+                }
+
+                // from here on out, we know that all of our inputs have values.
+
+                // getting and generating the authorID
+                var $blogEmailInput = $("#blogEmailInput");
+                // get the email addres we should use
+                var authorEmail = $blogEmailInput.val();
+
+                // create our author
+                dinh.services.generateAuthor(authorEmail, dinh.page.handlers.onCreateAuthorSuccess);
+
+                if (dinh.page.authorID != null) {
+                    // console logging the author ID
+                    console.log(dinh.page.authorID);
+                }
+
+                return false;
+
+            }; // dinh.page.handlers.onCreateBlogClick
+
+            // this method will fire when the authoer has been created.
+            dinh.page.handlers.onCreateAuthorSuccess = function (data, textStatus, jqXHR) {
+                // Console log the transactionId
+                console.log("In dinh.page.handlers.onCreateAuthorSuccess, transaction ID: " + data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the author ID.");
+                    //$('#alertModal').modal('show'); // alert the user
+
+                    return; // stop processing
+                };
+
+                // declared our blog object
+                var blog = {
+                    authorID: data.item,
+                    title: null,
+                    content: null
+                };
+
+                // Hydrating our blog object.
+                blog.title = $("#blogTitleInput").val();
+                blog.content = $("#blogContentInput").val();
+
+                // send the data through AJAX.
+                dinh.services.createBlog(blog, dinh.page.handlers.onCreateBlogSuccess);
+
+                // setting each of our data fields (properties)
+                data.authorEmail = $("#blogEmailInput").val();
+                data.title = $("#blogTitleInput").val();
+                data.content = $("#blogContentInput").val();
+
+            }; //dinh.page.handlers.onCreateAuthorSuccess
+
+            // this method will fire when the blog has been created.
+            dinh.page.handlers.onCreateBlogSuccess = function (data, textStatus, jqXHR) {
+                // Step 1: console log our transaction
+                console.log("In dinh.page.handlers.onCreateBlogSuccess, transaction ID: " + data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the blog.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+                self.location = "blog/" + data.item;
+
+                // save the blog ID into a global property
+                dinh.page.blogID = data.item;
+            }; //dinh.page.handlers.onCreateBlogSuccess
+        };
+        // ## END CREATING A NEW BLOG ##
+    </script> <!--handlers-->
+
+}

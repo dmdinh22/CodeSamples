@@ -1,0 +1,143 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<h1>Blogs</h1>
+
+
+
+@Html.ActionLink("Create Blog", "Create Blog", new { }, new { @class = "btn btn-default" })
+
+
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="authorsDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        All Authors
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="authorsDropdownMenu">
+    </ul>
+</div>
+
+<div class="list-group">
+</div>
+
+<script type="text/html" id="Template">
+    <a href="#" class="list-group-item">
+        <h4 class="list-group-item-heading">List group item heading</h4>
+        <div class="comment-meta">By admin | Today, 12:31</div>
+        <p class="list-group-item-text">...</p>
+    </a>
+</script> <!--#Template-->
+
+@section scripts {
+    <script type="text/javascript">
+        /*
+        this page will list all of the blogs, and will allow us to select and view each blog as needed
+        */
+
+        dinh.page.startUp = function ()
+        {
+            dinh.services.getAuthors(dinh.page.handlers.onGetAuthorsSuccess);
+            dinh.services.getBlogs(dinh.page.handlers.onGetBlogSuccess);
+        }; //dinh.page.startUp
+
+        dinh.services.getAuthors = function (onSuccess, onError)
+        {
+            dinh.page.sendAjax("authors", dinh.page.ajaxType.GET, null, onSuccess, onError);
+
+        }; //dinh.services.getAuthors 
+
+        dinh.page.handlers.onGetAuthorsSuccess = function (data, textStatus, jqXHR) {
+            // console log the transaction
+            console.log("In dinh.page.handlers.onGetAuthorsSuccess, Transaction ID: " + data.transactionID);
+
+            // check for success
+            if (data.isSuccessFul == false) // if unsuccessful
+            {
+                console.log("dinh.page.handlers.onGetAuthorsSuccess: an issue has occured..."); // console log the error
+
+                // Notify the user (using a modal)
+                dinh.page.alert("There was a problem retrieving the blog.");
+
+                return; // stop processing
+            };
+
+            // by this point, we have a successful transmission
+
+            var authors = data.items;
+            var $dropdown = $(".dropdown > .dropdown-menu");
+
+            for (var i in authors)
+            {
+                var author = authors[i];
+                
+                $dropdown.append("<li class=\"author-" + author.id + "\" data-id=\"" + author.id + "\"><a href=\"#\">" + author.email + "</a></li>");
+
+            };
+            //dinh.services.getBlogs(dinh.page.handlers.onGetBlogSuccess);
+        }; //dinh.page.handlers.onGetAuthorsSuccess 
+
+
+        // get the author for a particular blog
+        dinh.services.getBlogAuthor = function (blogId, onSuccess, onError) {
+            dinh.page.sendAjax("blogs/" + blogId + "/authors", dinh.page.ajaxType.GET, null, onSuccess, onError);
+        }; //dinh.services.getBlogAuthor
+
+
+        // service that will retrieve the list of blogs
+        dinh.services.getBlogs = function (onSuccess, onError)
+        {
+            dinh.page.sendAjax("blogs", dinh.page.ajaxType.GET, null, onSuccess, onError)
+        }; //dinh.services.getBlogs 
+
+        // when the method returns a blog
+        dinh.page.handlers.onGetBlogSuccess = function (data, textStatus, jqXHR)
+        {
+            // console log the transaction
+            console.log("In dinh.page.handlers.onGetBlogSuccess, Transaction ID: " + data.transactionId);
+
+            // check for success
+            if (data.isSuccessFul == false) // if unsuccessful
+            {
+                console.log("dinh.page.handlers.onGetBlogSuccess: an issue has occured..."); // console log the error
+
+                // Notify the user (using a modal)
+                dinh.page.alert("There was a problem retrieving the blog.");
+
+                return; // stop processing
+            };
+
+            // by this point, we have a successful transmission
+
+            var blogs = data.items; // blogs are the items array of the data object
+
+            for (var i in blogs)
+            {
+                // get the current blog
+                var blog = blogs[i];
+
+                console.log(blogs[i]);
+
+                // TCHA - template, clone, hydrate, append
+                var $blog = dinh.page.getClone("#Template");
+
+                // hydrate
+                $blog.attr("data-id", blog.id);
+                $blog.find(".list-group-item-heading").text(blog.title);
+                $blog.find(".list-group-item-text").text(blog.content);
+
+                blog.author = $(".author-" + blog.authorId).text();
+                
+                $blog.find(".comment-meta").text(blog.author);
+
+                $blog.appendTo(".list-group");
+            }
+                
+            }; //dinh.page.handlers.onGetBlogSuccess
+
+    </script>
+    
+    }

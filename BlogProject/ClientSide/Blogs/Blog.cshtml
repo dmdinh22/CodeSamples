@@ -1,0 +1,827 @@
+﻿@model Dinh.Mvc.Models.ViewModels.ItemViewModel<int>
+@{
+    ViewBag.Title = "Blog";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Blog</h2>
+
+<input type="hidden" id="blogHiddenField" value="@Model.Item" />
+
+<div class="blog-post hidden">
+    <h2 class="blog-post-title">The Best Blog Post Title</h2>
+    <p class="blog-post-meta">by <a href="#">dmdinh22@mailinator.com</a></p>
+
+    <div id="lipsum">
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu sapien scelerisque, dictum nisi vehicula, tincidunt nunc. Quisque ut lacinia ipsum, ut fermentum nisl. Donec et volutpat lectus. Cras tincidunt imperdiet tincidunt. Mauris consequat vestibulum euismod. Phasellus velit mauris, laoreet ut lacus sagittis, ultricies dapibus arcu. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec nulla risus, imperdiet ut urna pulvinar, cursus dignissim turpis. Curabitur cursus vehicula facilisis. Donec odio enim, blandit id cursus vel, pretium et lectus. Curabitur id eros rhoncus, bibendum sem et, ultricies magna. Suspendisse placerat semper pellentesque. Aenean varius molestie elit, at elementum neque rutrum luctus. Mauris at nisi in neque aliquam pulvinar. Aenean eu aliquet nisl.
+        </p>
+    </div>
+</div>
+<div class="row commentsContainer hidden">
+    <div class="btn-group">
+        <button type="button" class="btn btn-default" data-toggle="collapse" data-target=".comments">Show/Hide Comments</button>
+        <button id="showNewCommentFormButton" type="button" class="btn btn-primary" data-toggle="modal" data-target="#commentModal">Add Comments</button>
+    </div>
+    <div class="comments collapse">
+        <h2 class="title"><span class="count">0</span> comment(s)</h2>
+        <!-- No Comments Here -->
+    </div>
+</div> <!-- .commentsContainer-->
+
+<div class="row newCommentForm" style="display:none">
+    <div class="comments-form col-md-6">
+        <h2 class="title">Add your comment</h2>
+        <form>
+            <div class="form-group">
+                <label for="commentTitleInput">Title</label>
+                <input type="text" class="form-control" id="commentTitleInput" placeholder="Title">
+            </div>
+            <div class="form-group">
+                <label for="commentEmailInput">Email</label>
+                <input type="email" class="form-control" id="commentEmailInput" placeholder="Email">
+            </div>
+            <label for="commentContentInput">Content</label>
+            <textarea class="form-control" id="commentContentInput" placeholder="Content"></textarea>
+            <button id="addCommentButton" type="button" class="btn btn-default">Add Comment</button>
+        </form>
+    </div>
+</div><!--.newCommentForm-->
+
+
+<script type="text/html" id="commentTemplate">
+    <!-- comment start -->
+    <div class="comment mediaclearfix">
+        <div class="comment-avatar media-left">
+            <img src="http://placehold.it/50x50" alt="avatar">
+        </div>
+        <div class="comment-content media-body clearfix">
+            <h3 class="media-heading">Comment title</h3>
+            <div class="comment-meta">By <a href="#">admin</a> | Today, 12:31</div>
+            <div class="comment-body">
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo </p>
+                <a href="#" class="btn btn-gray more  reply"><i class="fa fa-reply"></i> Reply</a>
+                <a href="#" class="btn btn-gray more edit"><i class="glyphicon glyphicon-edit"></i> Edit</a>
+                <a href="#" class="btn btn-gray more delete"><i class="glyphicon glyphicon-trash"></i> Delete</a>
+            </div>
+        </div>
+    </div>
+    <!-- comment end -->
+</script> <!--#commentTemplate-->
+<script type="text/html" id="alertModalTemplate">
+    <div class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Modal Header</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Some text in the modal.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script> <!-- #alertModalTemplate -->
+<div class="modal fade" id="replyModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Add Reply</h4>
+            </div>
+            <div class="modal-body">
+                <div class="replies-form">
+                    <form id="userReply">
+                        <div id="replyTitle" class="form-group">
+                            <label for="replyTitleInput">Reply Title</label>
+                            <input type="text" class="form-control" id="replyTitleInput" placeholder="Title">
+                        </div>
+                        <div id="replyAuthor" class="form-group">
+                            <label for="replyEmailInput">Email</label>
+                            <input type="text" class="form-control" id="replyEmailInput" placeholder="Email">
+                        </div>
+                        <div id="replyContent" class="form-group">
+                            <label for="replyContentInput">Reply</label>
+                            <textarea class="form-control" id="replyContentInput" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default replybutton" data-dismiss="modal">Close</button>
+                <input type="button" value="Submit Reply" class="btn btn-success cmdAddReply"
+                       data-formid="#comment-form-reply" data-dismiss="modal">
+
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- #replyModal -->
+<div class="modal fade" id="editModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Edit Reply</h4>
+            </div>
+            <div class="modal-body">
+                <div class="edit-form">
+                    <form id="userEdit">
+                        <div id="editTitle" class="form-group">
+                            <label for="editTitleInput">Edit Title</label>
+                            <input type="text" class="form-control" id="editTitleInput" placeholder="Title">
+                        </div>
+                        <div id="editAuthor" class="form-group">
+                            <label for="editEmailInput">Edit Email</label>
+                            <input type="text" class="form-control" id="editEmailInput" placeholder="Email">
+                        </div>
+                        <div id="editContent" class="form-group">
+                            <label for="editContentInput">Edit Reply</label>
+                            <textarea class="form-control" id="editContentInput" rows="3" placeholder="Content"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default closebutton" data-dismiss="modal">Close</button>
+                <input type="button" value="Submit Edit" class="btn btn-success cmdAddEdit"
+                       data-formid="#comment-form-edit" data-dismiss="modal">
+
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- #editModal -->
+<div class="modal fade" id="myDeleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <div class="reply-form">
+                    <p>Are you sure you want to delete this comment and all subsequent replies?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteButton" type="button" class="btn btn-primary" data-dismiss="modal">Yes</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- #deleteModal -->
+
+
+
+@section scripts{
+    <script type="text/javascript">
+
+        dinh.page.startUp = function () {
+            var blogID = $("#blogHiddenField").val();
+
+            dinh.services.getBlog(blogID, dinh.page.handlers.onGetBlogSuccess);
+            dinh.services.getBlogAuthor(blogID, dinh.page.handlers.OnGetBlogAuthorSuccess);
+            dinh.services.getComments(blogID, dinh.page.handlers.onGetCommentSuccess);
+
+            // Wire up our buttons
+            $("#createBlogButton").on("click", dinh.page.handlers.onCreateBlogClick);
+            $("#showNewCommentFormButton").on("click", dinh.page.handlers.onAddCommentClick);
+            $("#addCommentButton").on("click", dinh.page.handlers.onCreateCommentClick);
+
+            //Fire Submit Reply on click - delegated event!!
+            $(".container").on("click", ".reply", dinh.page.handlers.onAddReplyClick);
+            $(".cmdAddReply").on("click", dinh.page.handlers.onCreateReplyClick)
+
+            // back button
+            $("#backButton").on("click", dinh.page.handlers.onBack);
+
+            //Fire Delete on click - delegated event!!
+            $(".comments").on("click", ".delete", dinh.page.handlers.onDeleteClick);
+            $("#deleteButton").on("click", dinh.page.handlers.onConfirmDeleteClick);
+
+            //Fire Edit on click - delegated event
+            $(".container").on("click", ".edit", dinh.page.handlers.onEditClick);
+            $(".cmdAddEdit").on("click", dinh.page.handlers.onSubmitEditClick); // skips service method
+
+            $("#toggle").on("click", scrollToComment);
+
+        }; //dinh.page.startUp
+
+        dinh.page.handlers.onGetBlogSuccess = function (data, textStatus, jqXHR) {
+            // Console log our transaction
+            console.log("In dinh.page.handlers.onGetBlogSuccess, transaction ID: " + data.transactionId);
+
+            if (data.isSuccessFul == false) // if unsuccessful
+            {
+                console.log("dinh.page.handlers.onGetBlogSuccess: an issue has occured..."); // console log the error
+
+                // Notify the user (using a modal)
+                dinh.page.alert("There was a problem retrieiving the blog.");
+
+                return; // stop processing
+            };
+
+            // by this point, we should have a successful transmission
+
+            // set blog variable to the data object
+            var blog = data.item;
+
+            // get the container (.blog-post)
+            var $blog = $(".blog-post");
+
+            // hydrate our container.
+            $blog.find(".blog-post-title").text(blog.title);
+            $blog.find("#lipsum").find("p").text(blog.content); // cannot use space for id's
+
+            // show our blog container
+            $blog.removeClass("hidden");
+
+            //showing .commentsContainer
+            $(".commentsContainer.hidden").removeClass("hidden"); // having two classes looks for any container that has both classes
+
+        }; //dinh.page.handlers.onGetBlogSuccess
+
+        // This will append the comment to the page
+        dinh.page.processComment = function (data, parentCommentID) {
+            // In here, we will be appending the comment to the page (using our TCHA - template, clone, hydrate, append)
+            console.log(data, parentCommentID);
+
+            // step 1: set our comment variable
+            var comment = data;
+
+            // step 2: get our clone
+            var $clone = dinh.page.getClone("#commentTemplate");
+
+            //step 3: hydrate our clone
+            $clone.find(".comment-meta a").text(comment.author);
+            $clone.find(".media-heading").text(comment.title);
+            $clone.find(".comment-body p").text(comment.content);
+            $clone.attr("data-id", comment.id);
+
+            //append the new comment to container
+            if (parentCommentID != null) {
+
+                var $parentComment = $('[data-id="' + parentCommentID + '"]');
+
+                // Assigning data
+                $clone.appendTo($parentComment);
+            }
+            else {
+                $clone.appendTo(".comments");
+            };
+
+            // step 4.5 count the comments
+            dinh.page.commentCounter();
+
+            // step 5: clear our inputs.
+            $(".newCommentForm form")[0].reset();
+
+            // step 6: hide the form
+            $(".newCommentForm").css("display", "none");
+        }; // dinh.page.processComment
+
+        dinh.page.processCommentList = function (comments, parentCommentID) {
+            for (var i = 0; i < comments.length; i++) {
+
+                // Step 1: get our comment.
+                var comment = comments[i];
+
+                // Step 2: Process the current comment.
+                dinh.page.processComment(comment, parentCommentID);
+
+                // Step 3: If the comment has replies, process them.
+                if (comment.replies) {
+                    dinh.page.processCommentList(comment.replies, comment.id);
+                };
+            }
+        }; // dinh.page.processCommentList
+
+        dinh.page.handlers.onGetCommentSuccess = function (data, textStatus, jqXHR) {
+            // console log our transaction
+            console.log("In dinh.page.handlers.onGetCommentSuccess, transcation ID: " + data.transactionId)
+
+            if (data.isSuccessFul == false) // if unsuccessful
+            {
+                console.log("dinh.page.handlers.onGetCommentSuccess: an issue has occured..."); // console log the error
+
+                // Notify the user (using a modal)
+                dinh.page.alert("There was a problem retrieiving the comments.");
+
+                return; // stop processing
+            };
+
+            // by this point, we should have a successful transmission
+            dinh.page.processCommentList(data.items); // need to pass in data.items in order to grab the array within the data object.
+        }; // dinh.page.handlers.onGetCommentSuccess
+
+        // get the author for a particular blog
+        dinh.services.getBlogAuthor = function (blogId, onSuccess, onError) {
+            dinh.page.sendAjax("blogs/" + blogId + "/authors", dinh.page.ajaxType.GET, null, onSuccess, onError);
+        }; //dinh.services.getBlogAuthor
+
+        dinh.page.handlers.OnGetBlogAuthorSuccess = function (data, textStatus, jqXHR) {
+            // Console log our transaction
+            console.log("In dinh.page.handlers.OnGetBlogAuthorSuccess, transaction ID: " + data.transactionId);
+
+            if (data.isSuccessFul == false) // if unsuccessful
+            {
+                console.log("dinh.page.handlers.OnGetBlogAuthorSuccess: an issue has occured..."); // console log the error
+
+                // Notify the user (using a modal)
+                dinh.page.alert("There was a problem retrieiving the blog author.");
+
+                return; // stop processing
+
+
+            };
+
+            // by this point, we should have a successful transmission
+            // set blog variable to the data object
+            var author = data.item;
+
+            // get the container (.blog-post)
+            var $blog = $(".blog-post");
+
+            // hydrate our container.
+            $blog.find(".blog-post-meta a").text(author.Email);
+        }; //dinh.page.handlers.OnGetBlogAuthorSuccess
+
+        // ## CREATE A NEW BLOG COMMENT ##
+        {
+            // This method will display the new comment form
+            dinh.page.handlers.onAddCommentClick = function (e) {
+                // Step 1: prevent the default action.
+                if (e)
+                    e.preventDefault();
+                // GOAL: show newCommentForm
+                $(".newCommentForm").css("display", "block");
+
+            }; // dinh.page.handlers.onAddCommentClick
+
+            // This method will create the comment
+            dinh.page.handlers.onCreateCommentClick = function (e) {
+                // prevent our default action
+                if (e)
+                    e.preventDefault();
+
+                // step 1: console log
+                console.log("In dinh.page.handlers.onCreateCommentClick");
+
+                // step 2: validate the form
+                var formValid = dinh.page.validate(".newCommentForm"); //check if form is invalid
+
+                if (formValid == false) // page is invalid
+                {
+                    console.log("The form is invalid, does not have all inputs."); // console log the issue
+
+                    // update the alert to be a modal
+                    // alert("Please check your inputs and fill them all in... for once...");
+                    dinh.page.alert("Please check your inputs and fill them all in... for once...");
+
+                    return; // stop processing
+                };
+
+                // step 3: get our values.
+                // created our data object
+                var comment = {
+                    "title": null
+                    , "content": null
+                    , "userName": null
+                    , "blogPostId": null
+                    // , "parentCommentId": null
+                };
+
+                //hydrate our object
+                comment.title = $("#commentTitleInput").val();
+                comment.content = $("#commentContentInput").val();
+                comment.userName = $("#commentEmailInput").val();
+                comment.blogPostId = $("#blogHiddenField").val();
+
+                // submitting the comment to the API
+                dinh.services.createComment(comment, dinh.page.handlers.onCreateCommentSuccess);
+            }; // dinh.page.handlers.onCreateCommentClick
+
+            // this method will fire when the comment has been created.
+            dinh.page.handlers.onCreateCommentSuccess = function (data, textStatus, jqXHR) {
+                // Step 1: console log our transaction
+                console.log("In dinh.page.handlers.onCreateCommentSuccess, transaction ID: " + data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the comment.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+
+                // step 1: get the comment variables
+                var comment = {
+                    "id": null
+                    , "title": null
+                    , "content": null
+                    , "userName": null
+                };
+
+                // hydrated the structure.
+                comment.id = data.item;
+
+                comment.title = $("#commentTitleInput").val();
+                comment.content = $("#commentContentInput").val();
+                comment.userName = $("#commentEmailInput").val();
+
+                // step 2: create our template
+                var $clone = dinh.page.getClone("#commentTemplate");
+
+                //step 3: hydrate our template
+                dinh.page.fillComment($clone, comment);
+
+                // step 4: append the new comment
+                $clone.appendTo(".comments");
+
+                dinh.page.commentCounter();
+
+                // step 5: clear our inputs.
+                $(".newCommentForm form")[0].reset();
+
+                // step 6: hide the form
+                $(".newCommentForm").css("display", "none");
+
+            }; //dinh.page.handlers.onCreateCommentSuccess
+        };
+
+        // ## END CREATING A NEW BLOG COMMENT ##
+
+        // ## CREATE A NEW COMMENT REPLY ##
+        {
+            // This method will display the new reply modal
+            dinh.page.handlers.onAddReplyClick = function (e) {
+                // step 1: prevent the default action
+                if (e)
+                    e.preventDefault();
+
+                // console log
+                console.log("in dinh.page.handlers.onAddReplyClick")
+
+                // remove class reply from all reply links - clear all temporary replying classes
+                $("." + dinh.page.flags.REPLY).removeClass(dinh.page.flags.REPLY);
+
+                // flag the current comment
+                // get this - set reply button clicked to $this variable
+                var $this = $(this);
+
+                //  find closest comment div
+                var commentSelector = ".comment";
+                var $comment = $this.closest(commentSelector);
+
+                // verify that the selector has returned info
+                if ($comment.length == 0) {
+                    // We just want to console log for debugging purposes.
+                    console.log("The selector '" + commentSelector + "' resulted in zero results");
+
+                    // We stop the method
+                    return;
+                };
+
+                // add Class back after appending reply (flag it)
+                $comment.addClass(dinh.page.flags.REPLY);
+
+                //step 2: show reply modal
+                $("#replyModal").modal("show");
+
+            }; // dinh.page.handlers.onAddReplyClick
+
+            // This method will create the reply
+            dinh.page.handlers.onCreateReplyClick = function (e) {
+                // prevent our default action
+                if (e)
+                    e.preventDefault();
+
+                // step 1: console log
+                console.log("In dinh.page.handlers.onCreateReplyClick");
+
+                // step 2: validate the reply form
+                var replyFormValid = dinh.page.validate(".replies-form"); // check if form is invalid
+
+                if (replyFormValid == false) // invalid form
+                {
+                    console.log("The form is invalid, does not have all inputs."); // console log issue
+
+                    dinh.page.alert("Please check your reply inputs and fill them all in... for once...");
+
+                    // stop processing
+                    return;
+                };
+
+                // step 3: get our reply values
+                // create data object for replies
+                var reply = {
+                    "title": null
+                    , "content": null
+                    , "userName": null
+                    , "blogPostId": null
+                    , "parentCommentId": null
+                };
+
+                // hydrate our object with values from modal form
+                reply.title = $("#replyTitleInput").val();
+                reply.content = $("#replyContentInput").val();
+                reply.userName = $("#replyEmailInput").val();
+                reply.blogPostId = $("#blogHiddenField").val();
+
+                // getting the reply data id
+                reply.parentCommentId = $("." + dinh.page.flags.REPLY).data("id"); // can also use $(".replying").attr("data-id"), an older solution
+
+                // submitting the reply to the API
+                dinh.services.createReply(reply, dinh.page.handlers.onCreateReplySuccess); // can use comment service since its the same params
+
+            }; // dinh.page.handlers.onCreateReplyClick
+
+            // this method will fire when the reply has been created
+            dinh.page.handlers.onCreateReplySuccess = function (data, textStatus, jqXHR) {
+                // step 1: console log our transaction
+                console.log("In dinh.page.handlers.onCreateReplySuccess, transaction ID: ", data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the reply.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+
+                // step 1: get the reply variables
+
+                var reply = {
+                    "id": null
+                    , "title": null
+                    , "content": null
+                    , "userName": null
+                };
+
+                // hydrated the structure.
+                reply.id = data.item;
+
+                reply.title = $("#replyTitleInput").val();
+                reply.content = $("#replyContentInput").val();
+                reply.userName = $("#replyEmailInput").val();
+
+                // create our template
+                var $clone = dinh.page.getClone("#commentTemplate");
+
+                // hydrate our reply template
+                dinh.page.fillReply($clone, reply); // can use fillComment utility
+
+                //  append the new reply to the comment
+                $clone.appendTo("." + dinh.page.flags.REPLY);
+
+                // hide modal, clear form
+                $("#replyModal").on("hidden.bs.modal", function () {
+                    $(this).find("form")[0].reset();
+                });
+
+                // ✓TODO: update the number of comments **DONE**
+                dinh.page.commentCount++; // increments the current count
+                $(".comments .title .count").text(dinh.page.commentCount); // sets the current count
+
+            }; // dinh.page.handlers.onCreateReplySuccess
+        }
+        // ## END CREATING A NEW COMMENT REPLY ##
+
+        // ## EDITING A BLOG COMMENT/REPLY ##
+        {
+            // this is the edit click handler
+            dinh.page.handlers.onEditClick = function (e) {
+                //prevent default action
+                if (e)
+                    e.preventDefault();
+
+                console.log("In dinh.page.handlers.onEditClick");
+
+                // step 1 remove class editing from all edit links
+                $("." + dinh.page.flags.EDIT).removeClass(dinh.page.flags.EDIT);
+
+                // step 2: set button clicked to $this variable
+                var $this = $(this);
+
+                // step 3: find closet comment to the edit button clicked
+                var editSelector = ".comment"; // setting variable to the comment class chosen
+                var $edit = $this.closest(editSelector); // set the edit variable to closest comment div to edit button
+
+                // step 3a: verify that the selector has returned info
+                if ($edit.length == 0) {
+                    // We just want to console log for debugging purposes.
+                    console.log("The selector '" + editSelector + "' resulted in zero results");
+
+                    // We stop the method
+                    return;
+                };
+
+                //step 4: add edit class back afer selecting proper comment to edit
+                $edit.addClass(dinh.page.flags.EDIT);
+
+                // grab the current inputs from the comment
+                var currentCommentTitle = $("." + dinh.page.flags.EDIT + " > .comment-content > .media-heading").text(); // walk down DOM to select only this child
+                var currentCommentUser = $("." + dinh.page.flags.EDIT + " > .comment-content > .comment-meta a").text();
+                var currentCommentContent = $("." + dinh.page.flags.EDIT + " > .comment-content > .comment-body p").text();
+
+                // hydrate the modal with existing inputs
+                $("#editModal").find("#editTitleInput").val(currentCommentTitle);
+                $("#editModal").find("#editEmailInput").val(currentCommentUser);
+                $("#editModal").find("#editContentInput").val(currentCommentContent);
+
+                // disable userName field
+                // document.getElementById("editEmailInput").disabled = true; ==> vanilla JS
+                $("#editEmailInput").prop("disabled", true); // jQuery
+
+                // step 5: edit comment
+                $("#editModal").modal("show");
+
+            }; // dinh.page.handlers.onEditClick
+
+            dinh.page.handlers.onSubmitEditClick = function (e) {
+                // prevent our default action
+                if (e)
+                    e.preventDefault();
+
+                // step 1: console log
+                console.log("In dinh.page.handlers.onCreateEditClick");
+
+                // step 2: validate the edit form
+                var editFormValid = dinh.page.validate(".edit-form"); // check if form is invalid
+
+                if (editFormValid == false) // invalid form
+                {
+                    console.log("The form is invalid, does not have all inputs."); // console log issue
+
+                    dinh.page.alert("Please check your inputs and fill them all in... for once...");
+
+                    // stop processing
+                    return;
+                };
+
+                // step 3: get our comment values to edit
+                // create data object
+                var edit = {
+                    "id": null
+                    , "title": null
+                    , "content": null
+                    , "userName": null
+                    , "blogPostId": null
+                    , "parentCommentId": null
+                };
+
+                //hydrate our object with values from the modal form
+                edit.id = $("." + dinh.page.flags.EDIT).data("id"); // set the object's element id to flagged comment
+                edit.title = $("#editTitleInput").val();
+                edit.content = $("#editContentInput").val();
+                edit.userName = $("#editEmailInput").val(); // author stays static, cannot update to API
+                edit.blogPostId = $("#blogHiddenField").val();
+                edit.parentCommentId = 0; // do we need to set it to a certain id from the API?
+
+                var editID = edit.id; // declare variable to use in services method
+
+                // submitting the edit to the API
+                dinh.services.editComment(editID, edit, dinh.page.handlers.onEditSuccess);
+
+            }; //dinh.page.handlers.onSubmitEditClick
+
+            dinh.page.handlers.onEditSuccess = function (data, textStatus, jqXHR) {
+                // step 1: console log our transaction
+                console.log("In dinh.page.handlers.onEditSuccess, transaction ID: ", data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem editing the comment.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+
+                // step 1: get the reply variables
+                var edit = {
+                    "id": null
+                    , "title": null
+                    , "content": null
+                    , "userName": null
+                    , "blogPostId": null
+                    , "parentCommentId": null
+                };
+
+                edit.title = $("#editTitleInput").val();
+                edit.content = $("#editContentInput").val();
+                edit.userName = $("#editEmailInput").val(); // author stays static, cannot update to API
+
+                // hydrate our targeted comment being edited
+                $("." + dinh.page.flags.EDIT).find(" > .comment-content > .media-heading").text(edit.title); // walk down DOM to select only this child
+                $("." + dinh.page.flags.EDIT).find(" > .comment-content > .comment-meta a").text(edit.userName); // author stays static, cannot update to API
+                $("." + dinh.page.flags.EDIT).find(" > .comment-content > .comment-body p").text(edit.content);
+
+                // remove editing class from targeted comment
+                $("." + dinh.page.flags.EDIT).removeClass(dinh.page.flags.EDIT);
+
+            }; // dinh.page.handlers.onEditSuccess
+        };
+        // ## END EDITING A BLOG COMMENT/REPLY ##
+
+        // ## DELETING A BLOG COMMENT/REPLY ##
+        {
+            // this is the delete click handler
+            dinh.page.handlers.onDeleteClick = function (e) {
+                // prevent default action
+                if (e)
+                    e.preventDefault;
+
+                console.log("In dinh.page.handlers.onDeleteClick");
+
+                // step 1: remove class deleting from all delete links - clear all temporary deleting classes
+                $("." + dinh.page.flags.DELETE).removeClass(dinh.page.flags.DELETE);
+
+                // step 2: set button clicked to $this variable
+                var $this = $(this);
+
+                // step 3: find closest comment to the delete being clicked
+                var deleteSelector = ".comment"; // ==> setting variable to the comment class
+                var $delete = $this.closest(deleteSelector); // ==> set delete variable to closet comment div to clicked button
+
+                // step 3a: verify that the selector has returned info
+                if ($delete.length == 0) {
+                    // We just want to console log for debugging purposes.
+                    console.log("The selector '" + deleteSelector + "' resulted in zero results");
+
+                    // We stop the method
+                    return;
+                };
+
+                // step 4: added the flag to the relative comment we are on
+                $delete.addClass(dinh.page.flags.DELETE);
+
+                // show the modal
+                $("#myDeleteModal").modal("show");
+            }; // dinh.page.handlers.onDeleteClick
+
+            // when we are in this method, the user has confirmed they want to delete this comment
+            dinh.page.handlers.onConfirmDeleteClick = function (e) {
+                // prevent default action
+                if (e)
+                    e.preventDefault;
+
+                console.log("In dinh.page.handlers.onConfirmDeleteClick");
+
+                // get the data-id of comment
+                var $delete = $("." + dinh.page.flags.DELETE);
+                var deleteID = $delete.attr("data-id");
+
+                // call our delete service
+                dinh.services.deleteComment(deleteID, dinh.page.handlers.onDeleteSuccess);
+            }; // dinh.page.handlers.onConfirmDeleteClick
+
+            // this method will fire when the deletion of comment
+            dinh.page.handlers.onDeleteSuccess = function (data, textStatus, jqXHR) {
+                // step 1: console log our transaction
+                console.log("In dinh.page.handlers.onDeleteSuccess, transaction ID: ", data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem deleting the reply.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+
+                // remove the comment from the DOM
+                $("." + dinh.page.flags.DELETE).remove();
+
+                //  ✓ TODO: Comment Counter - decrement **DONE**
+                dinh.page.commentDeleteCounter();
+
+            }; // dinh.page.handlers.onDeleteSuccess
+        };
+        // ## END DELETING A BLOG COMMENT/REPLY ##
+
+        function scrollToComment() {
+            $("html, body").delay(250).animate({ scrollTop: $("#toggle").offset().top }, 500);
+        }
+
+    </script><!--handlers-->
+
+}

@@ -1,0 +1,478 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<div class="row">
+    <div class="col-md-6" id="blogInputContainer">
+        <form>
+            <div class="form-group">
+                <label for="blogTitleInput">Blog Title</label>
+                <input type="text" class="form-control" id="blogTitleInput" placeholder="Title">
+            </div>
+            <div class="form-group">
+                <label for="blogEmailInput">Blog Email</label>
+                <input type="email" class="form-control" id="blogEmailInput" placeholder="Email">
+            </div>
+            <div class="form-group">
+                <label for="blogContentInput">Blog Content</label>
+                <textarea class="form-control" id="blogContentInput" placeholder="Content"></textarea>
+            </div>
+            <button id="createBlogButton" type="button" class="btn btn-default">Create Blog</button>
+        </form>
+    </div>
+
+    <div class="blog-post hidden">
+        <h2 class="blog-post-title">The Best Blog Post Title</h2>
+        <p class="blog-post-meta">by <a href="#">gregorio@dinh.la</a></p>
+
+        <div id="lipsum">
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu sapien scelerisque, dictum nisi vehicula, tincidunt nunc. Quisque ut lacinia ipsum, ut fermentum nisl. Donec et volutpat lectus. Cras tincidunt imperdiet tincidunt. Mauris consequat vestibulum euismod. Phasellus velit mauris, laoreet ut lacus sagittis, ultricies dapibus arcu. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec nulla risus, imperdiet ut urna pulvinar, cursus dignissim turpis. Curabitur cursus vehicula facilisis. Donec odio enim, blandit id cursus vel, pretium et lectus. Curabitur id eros rhoncus, bibendum sem et, ultricies magna. Suspendisse placerat semper pellentesque. Aenean varius molestie elit, at elementum neque rutrum luctus. Mauris at nisi in neque aliquam pulvinar. Aenean eu aliquet nisl.
+            </p>
+            <button id="backButton" type="button" class="btn btn-default">Back</button>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <link href="~/Content/dinh.css" rel="stylesheet" />
+    <script src="../Scripts/dinh.page.common.js" type="text/javascript"></script>
+    <!-- This will contain all of our utility functions-->
+    <script type="text/javascript">
+        // this method will be the wrapper for ALL Ajax calls.
+        dinh.page.sendAjax = function (path, type, data, onSuccess, onError) {
+            //This is where our api is stored
+            //Step 1: Create the url (endpoint)
+            var url = "http://localhost:16405/api/" + path; //"http://dinhapi2.azurewebsites.net/api/" + path;
+
+            //Step 2: Create our package
+            var settings = {
+                /*C2D2SET*/
+                cache: false, // Will tell the endpoint not to cache the page
+                contentType: "application/json", //format our content will be in
+                dataType: "json", // the format our data is in
+                data: null, // <==  our payload ( a string represenatation of our payload object)
+                success: onSuccess, //this method will fire if the endpoint tells us that the transmission is successful
+                error: onError, //this method will fire if the endpoint throws an error
+                type: type // the type of request (GET, POST, PUT, DELETE)
+            };
+
+            if (data != null) {
+                if (typeof (data) == 'string')
+                    settings.data = data;
+                else
+                    settings.data = JSON.stringify(data); //our payload (an object, a simple object)
+            }
+            //Step 3: Send the package to the endpoint.
+            $.ajax(url, settings);
+
+        }; // end dinh.page.sendAjax
+
+        // this method will validate the form that we pass into it
+        dinh.page.validate = function (selector) {
+            // get the form
+            var $form = $(selector);
+
+            // find the inputs
+            var $inputs = $form.find("input,textarea");
+
+            // find the inputs that are blank.
+            var $blankInputs = $inputs.filter(dinh.page.validateFilter);
+
+            // GOAL: the filter will return 0 inputs.
+            return $blankInputs.length == 0;
+        }; // dinh.page.validate
+
+        // this method will validate & filter for all form inputs
+        dinh.page.validateFilter = function (index) {
+
+            var $this = $(this); // get the current item.
+
+            var $parent = $this.closest(".form-group"); // finding the containing div
+
+            if ($this.val()) // this checks to make sure there is a value
+            {
+                $parent.removeClass("has-error"); // if containing div has class, remove it
+
+                return false; // because inputs != 0 when there is a user input
+            }
+
+            // by the time we are here, our element has no value.
+
+            // checking to see if that div has the "has-error" class
+            var hasErrorClass = $parent.hasClass("has-error");
+
+            // adding the class "has-error" if it is not already added.
+            if (hasErrorClass == false) {
+                $parent.addClass("has-error");
+            }
+
+            return true; // because inputs == 0 if blank
+        }; //dinh.page.validateFilter
+
+        // This method will fill in the data for any element pass into $comment for new blog post
+        dinh.page.fillBlogData = function ($comment, data) {
+
+            // Step 1: fill in the title
+            dinh.page.setText($comment, ".blog-post-title", data.title);
+
+            // Step 2: fill in the email
+            dinh.page.setText($comment, ".blog-post-meta a", data.email);
+            // dinh.page.setText($comment, ".blog-post-meta a", data.email);
+            // if there was not a class of .blog-post-email
+
+            // Step 3: fill in the content
+            dinh.page.setText($comment, "#lipsum p", data.content);
+
+        }; // dinh.page.fillBlogData
+
+        // This method will open an alert modal.
+        dinh.page.alert = function (body, title) {
+            // ✓ TODO: Use utility to get the template. **DONE**
+            // step 1: use getClone to make clone of modal
+            var $clone = dinh.page.getClone("#alertModalTemplate");
+
+            // Step 2: Hydrate the modal
+            $clone.find(".modal-title").text(title || "Alert");
+            $clone.find(".modal-body p").text(body);
+
+            // Step 3: Show the alert.
+            $clone.modal("show"); // <== have show inside () to explicitly show
+
+        }; // dinh.page.alert
+
+        // This method will create a clone of a template
+        dinh.page.getClone = function (template)
+        {
+            // retrieve our template
+            var $template = $(template);
+            // get the html out of the template
+            var html = $template.html();
+            // loaded the html into a jquery object
+            var $html = $(html);
+            // cloned the jquery object
+            var $clone = $html.clone();
+
+            // return the clone
+            return $clone;
+        }; // dinh.page.getClone
+
+        // This method will hydrate the comment template
+        dinh.page.fillComment = function ($clone, comment)
+        {
+            $clone.find(".media-heading").text(comment.title);
+            $clone.find(".comment-meta a").text(comment.userName);
+            $clone.find(".comment-body p").text(comment.content);
+            $clone.attr("data-id", comment.id); //<== creates data-id attribute for the comment and sets the id# to comment.id
+        }; //dinh.page.fillComment
+
+        dinh.page.fillReply = function ($clone, reply) {
+            $clone.find(".media-heading").text(reply.title);
+            $clone.find(".comment-meta a").text(reply.userName);
+            $clone.find(".comment-body p").text(reply.content);
+            $clone.attr("data-id", reply.id); //<== creates data-id attribute for the comment and sets the id# to reply.id
+        }; //dinh.page.fillComment
+
+        // This method will increment the comment count
+        dinh.page.commentCounter = function () {
+            dinh.page.commentCount++; // increments the current count
+            $(".comments .title .count").text(dinh.page.commentCount); // sets the current count
+        }; // dinh.page.utilities.commentCounter
+
+        // This method will decrement the comment count
+        dinh.page.commentDeleteCounter = function (e) {
+            if (e)
+                e.preventDefault();
+
+            dinh.page.commentCount--; // decrements the current count
+            dinh.page.commentCount = $(".comment").length;
+            $(".comments .title .count").text(dinh.page.commentCount); // sets the current count
+        }; // dinh.page.utilities.commentDeleteCounter
+
+    </script><!--utilities-->
+    <!-- This will contain all of our global variables-->
+    <script type="text/javascript">
+        // this will hold our author ID and email address.
+        dinh.page.blogID = null;
+
+        // these are the different types of ajax calls we can performed
+        dinh.page.ajaxType =
+            {
+
+                POST: "POST", //        CREATE (usually), submits information
+                GET: "GET", //          READ, gets information
+                PUT: "PUT", //          UPDATE (usually), updates information
+                DELETE: "DELETE" //     DELETE, deletes information
+            }; // dinh.page.ajaxType
+
+        // Comment Count
+        // This will hold the current count of comments on the page
+        dinh.page.commentCount = $(".comment").length; // dinh.page.commentCount = 0
+
+        // These are the different flags
+        dinh.page.flags = {
+            REPLY: "replying",
+            DELETE: "deleting",
+            EDIT: "editing"
+        }; //dinh.page.flags
+
+    </script><!--variables-->
+    <!-- This will contain all of our services (api calls)-->
+    <script type="text/javascript">
+        // This service will generate an author from the email provided.
+        dinh.services.generateAuthor = function (email, onSuccess, onError) {
+            // convert all illegal url characters to safe characters
+            var encodedEmail = encodeURIComponent(email).replace(/\./g, '_');
+
+            dinh.page.sendAjax("authors/generate/" + encodedEmail, dinh.page.ajaxType.GET, null, onSuccess, onError);
+
+        }; // dinh.services.generateAuthor
+
+        // This service will post/create a blog
+        dinh.services.createBlog = function (blog, onSuccess, onError) {
+            dinh.page.sendAjax("blogs", dinh.page.ajaxType.POST, blog, onSuccess, onError);
+        }; // dinh.services.createBlog
+
+        // this service will post/ create a comment
+        dinh.services.createComment = function (comment, onSuccess, onError) {
+            dinh.page.sendAjax("comments", dinh.page.ajaxType.POST, comment, onSuccess, onError);
+
+        }; //dinh.services.createComment
+
+        // this service will post/ create a reply
+        dinh.services.createReply = function (reply, onSuccess, onError) {
+            dinh.page.sendAjax("comments/", dinh.page.ajaxType.POST, reply, onSuccess, onError);
+        }; //dinh.services.createReply
+
+        // This service will edit a comment
+        dinh.services.editComment = function (editID, edit, onSuccess, onError) {
+            dinh.page.sendAjax("comments/" + editID, dinh.page.ajaxType.PUT,
+                edit, onSuccess, onError);
+        }; // dinh.services.editComment
+
+        // This service will remove a comment
+        dinh.services.deleteComment = function (deleteID, onSuccess, onError) // only sending id through the service
+        {
+            dinh.page.sendAjax("comments/" + deleteID, dinh.page.ajaxType.DELETE, null, onSuccess, onError);
+        }; // dinh.services.deleteComment
+    </script><!--services-->
+    <!-- This will contain all of our handlers (what makes the page go "pop")-->
+    <script type="text/javascript">
+        dinh.page.startUp = function () {
+
+            console.log("startup entered");
+
+            // Wire up our buttons
+            $("#createBlogButton").on("click", dinh.page.handlers.onCreateBlogClick);
+            $("#showNewCommentFormButton").on("click", dinh.page.handlers.onAddCommentClick);
+            $("#addCommentButton").on("click", dinh.page.handlers.onCreateCommentClick);
+
+            //Fire Submit Reply on click - delegated event!!
+            $(".container").on("click", ".reply", dinh.page.handlers.onAddReplyClick);
+            $(".cmdAddReply").on("click", dinh.page.handlers.onCreateReplyClick)
+            // $(".cmdAddReply").on("click", dinh.page.handlers.commentCounter);
+
+            // back button
+            $("#backButton").on("click", dinh.page.handlers.onBack);
+
+            //Fire Delete on click - delegated event!!
+            $(".comments").on("click", ".delete", dinh.page.handlers.onDeleteClick);
+            $("#deleteButton").on("click", dinh.page.handlers.onConfirmDeleteClick);
+
+            //Fire Edit on click - delegated event
+            $(".container").on("click", ".edit", dinh.page.handlers.onEditClick);
+            $(".cmdAddEdit").on("click", dinh.page.handlers.onSubmitEditClick); // skips service method
+            //$(".cmdAddEdit").on("click", dinh.page.handlers.onEditSuccess); <-- fires if binded to button
+
+            // hide modal, clear form
+            $(".modal").on("hidden.bs.modal", function () {
+                $(this).find("form")[0].reset();
+            });
+
+        }; // dinh.page.startUp
+
+        // ## CREATING A NEW BLOG ##
+        {
+            // this method will fire when we click the Create Blog button
+            dinh.page.handlers.onCreateBlogClick = function (e) {
+                // prevent our default action
+                if (e)
+                    e.preventDefault();
+
+                // step 2: validate the form
+                var $form = $("#blogInputContainer");
+                var formValid = dinh.page.validate($form) //check if form is invalid
+
+                if (formValid == false) // page is invalid
+                {
+                    console.log("The form is invalid, does not have all inputs."); // console log the issue
+
+                    // update the alert to be a modal
+                    // alert("Please check your inputs and fill them all in... for once...");
+                    dinh.page.alert("Please check your inputs and fill them all in... for once...");
+
+                    return; // stop processing
+                }
+
+                // from here on out, we know that all of our inputs have values.
+
+                // getting and generating the authorID
+                var $blogEmailInput = $("#blogEmailInput");
+                // get the email addres we should use
+                var authorEmail = $blogEmailInput.val();
+
+                // create our author
+                dinh.services.generateAuthor(authorEmail, dinh.page.handlers.onCreateAuthorSuccess);
+
+                if (dinh.page.authorID != null) {
+                    // console logging the author ID
+                    console.log(dinh.page.authorID);
+                }
+
+                return false;
+
+            }; // dinh.page.handlers.onCreateBlogClick
+
+            // this method will fire when the authoer has been created.
+            dinh.page.handlers.onCreateAuthorSuccess = function (data, textStatus, jqXHR) {
+                // Console log the transactionId
+                console.log("In dinh.page.handlers.onCreateAuthorSuccess, transaction ID: " + data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the author ID.");
+                    //$('#alertModal').modal('show'); // alert the user
+
+                    return; // stop processing
+                };
+
+                // declared our blog object
+                var blog = {
+                    authorID: data.item,
+                    title: null,
+                    content: null
+                };
+
+                // Hydrating our blog object.
+                blog.title = $("#blogTitleInput").val();
+                blog.content = $("#blogContentInput").val();
+
+                // send the data through AJAX.
+                dinh.services.createBlog(blog, dinh.page.handlers.onCreateBlogSuccess);
+
+                // setting each of our data fields (properties)
+                data.authorEmail = $("#blogEmailInput").val();
+                data.title = $("#blogTitleInput").val();
+                data.content = $("#blogContentInput").val();
+
+            }; //dinh.page.handlers.onCreateAuthorSuccess
+
+            // this method will fire when the blog has been created.
+            dinh.page.handlers.onCreateBlogSuccess = function (data, textStatus, jqXHR) {
+                // Step 1: console log our transaction
+                console.log("In dinh.page.handlers.onCreateBlogSuccess, transaction ID: " + data.transactionId);
+
+                if (data.isSuccessFul == false) // if unsuccessful
+                {
+                    console.log("an issue has occured..."); // console log the error
+
+                    // Notify the user (using a modal)
+                    dinh.page.alert("There was a problem creating the blog.");
+
+                    return; // stop processing
+                };
+
+                // by this point, we should have a successful transmission
+
+                // save the blog ID into a global property
+                dinh.page.blogID = data.item;
+
+                // show the data on the page (this is tab 1)
+                // populating .blog-post
+                // Step 1: Gett he blog data
+                var blog =
+                    {
+                        author: null,
+                        title: null,
+                        content: null
+                    };
+
+                // hydrated our data
+                blog.author = $("#blogEmailInput").val();
+                blog.title = $("#blogTitleInput").val();
+                blog.content = $("#blogContentInput").val();
+
+                // Step 2: Get the container (.blog-post)
+                var $blog = $(".blog-post");
+
+                // hydrate our container.
+                $blog.find(".blog-post-title").text(blog.title);
+                $blog.find(".blog-post-meta a").text(blog.author);
+                $blog.find("#lipsum").find("p").text(blog.content); // cannot use space for id's
+
+                // show our blog container
+                $blog.removeClass("hidden");
+
+                //showing .commentsContainer
+                $(".commentsContainer.hidden").removeClass("hidden"); // having two classes looks for any container that has both classes
+
+                // hide our input container
+                $("#blogInputContainer").addClass("hidden");
+
+                // clear the form
+                $("#blogInputContainer form")[0].reset();
+
+            }; //dinh.page.handlers.onCreateBlogSuccess
+
+
+        };
+        // ## END CREATING A NEW BLOG ##
+
+        dinh.page.handlers.onBack = function (e) {
+            // Step 1: prevent the default action.
+            if (e)
+                e.preventDefault();
+
+            // Step 2: Get the container (.blog-post)
+            var $blog = $(".blog-post");
+
+            // hide our blog container
+            $blog.addClass("hidden");
+
+            //hide .commentsContainer
+            $(".commentsContainer").addClass("hidden");
+
+            // show our input container
+            $("#blogInputContainer").removeClass("hidden");
+
+        }; // dinh.page.handlers.onBack
+    </script><!--handlers-->
+}
+
+<script type="text/html" id="alertModalTemplate">
+    <div class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Modal Header</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Some text in the modal.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script> <!-- /#alertModalTemplate -->
+}
